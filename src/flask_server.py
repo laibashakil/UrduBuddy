@@ -123,43 +123,88 @@ def get_story(story_id):
         parts = story_id.split('/')
         print(f"Split parts: {parts}")
         
-        if len(parts) != 2:
+        # Handle both formats: 'root/story-name' and just 'story-name'
+        if len(parts) == 2:
+            location, story_name = parts
+        elif len(parts) == 1:
+            # If it's just a story name without location, assume it's in the root directory
+            story_name = parts[0]
+        else:
             print(f"Invalid story ID format: {story_id}")
             return jsonify({
                 'success': False,
                 'error': 'Invalid story ID format'
             }), 400
             
-        location, story_name = parts
-        print(f"Location: {location}, Story name: {story_name}")
+        print(f"Story name: {story_name}")
         
         # Determine the actual file path
         stories_dir = os.path.join('data', 'stories')
-        if location == 'root':
-            # Story in root directory
-            file_path = os.path.join(stories_dir, f"{story_name}.json")
-        else:
-            # Story in a subdirectory
-            file_path = os.path.join(stories_dir, location, f"{story_name}.json")
         
+        # List all files in the stories directory
+        all_files = os.listdir(stories_dir)
+        print(f"All files in stories directory: {all_files}")
+        
+        # Try to find the file with the exact name
+        file_path = os.path.join(stories_dir, f"{story_name}.json")
         print(f"Looking for file at: {file_path}")
+        
+        # If file doesn't exist, try to find a matching file
+        if not os.path.exists(file_path):
+            print(f"File not found at exact path: {file_path}")
+            
+            # Try to find a file that starts with the same prefix
+            matching_files = [f for f in all_files if f.startswith(story_name.split('-')[0]) and f.endswith('.json')]
+            print(f"Matching files: {matching_files}")
+            
+            if matching_files:
+                file_path = os.path.join(stories_dir, matching_files[0])
+                print(f"Found matching file: {file_path}")
+            else:
+                # Try with 'j' instead of 'jh' and vice versa
+                alt_name = story_name.replace('jheel', 'jheel').replace('jheel', 'jheel')
+                alt_path = os.path.join(stories_dir, f"{alt_name}.json")
+                print(f"Trying alternative path: {alt_path}")
+                
+                if os.path.exists(alt_path):
+                    file_path = alt_path
+                    print(f"Found file with alternative spelling: {alt_path}")
+                else:
+                    # Try with 'h' instead of 'j'
+                    alt_name = story_name.replace('jheel', 'hheel')
+                    alt_path = os.path.join(stories_dir, f"{alt_name}.json")
+                    print(f"Trying another alternative path: {alt_path}")
+                    
+                    if os.path.exists(alt_path):
+                        file_path = alt_path
+                        print(f"Found file with another alternative spelling: {alt_path}")
+                    else:
+                        # Try with 'j' instead of 'h'
+                        alt_name = story_name.replace('hheel', 'jheel')
+                        alt_path = os.path.join(stories_dir, f"{alt_name}.json")
+                        print(f"Trying yet another alternative path: {alt_path}")
+                        
+                        if os.path.exists(alt_path):
+                            file_path = alt_path
+                            print(f"Found file with yet another alternative spelling: {alt_path}")
+                        else:
+                            # If all else fails, try to find any file that contains the story name
+                            for file in all_files:
+                                if story_name in file and file.endswith('.json'):
+                                    file_path = os.path.join(stories_dir, file)
+                                    print(f"Found file containing story name: {file_path}")
+                                    break
+        
+        print(f"Final file path: {file_path}")
         print(f"File exists: {os.path.exists(file_path)}")
         
         # Check if file exists
         if not os.path.exists(file_path):
             print(f"Story not found at: {file_path}")
-            # Try another approach - look for the file directly in the root directory
-            direct_path = os.path.join(stories_dir, f"{story_name}.json")
-            print(f"Trying direct path: {direct_path}")
-            
-            if os.path.exists(direct_path):
-                file_path = direct_path
-                print(f"Found file at direct path: {file_path}")
-            else:
-                return jsonify({
-                    'success': False,
-                    'error': f'Story not found: {story_id}, tried paths: {file_path}, {direct_path}'
-                }), 404
+            return jsonify({
+                'success': False,
+                'error': f'Story not found: {story_id}'
+            }), 404
             
         # Read the story file
         with open(file_path, 'r', encoding='utf-8') as f:

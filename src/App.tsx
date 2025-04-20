@@ -32,6 +32,7 @@ function App() {
               </div>
             } />
             <Route path="/stories" element={<StoryLibrary />} />
+            <Route path="/story/:storyId" element={<StoryReaderWrapper />} />
             <Route path="/story/root/:storyId" element={<StoryReaderWrapper />} />
           </Routes>
         </main>

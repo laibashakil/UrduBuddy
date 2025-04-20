@@ -119,4 +119,4 @@ class RAGHandler:
             
         except Exception as e:
             print(f"Error in get_answer: {e}")
-            return "معذرت، میں آپ کے سوال کا جواب نہیں دے سکا۔ براہ کرم دوبارہ کوشش کریں۔" 
+            return "معذرت، میں آپ کے سوال کا جواب نہیں دے سکا۔ براہ کرم دوبارہ کوشش کریں۔"

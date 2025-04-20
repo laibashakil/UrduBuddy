@@ -1,113 +1,88 @@
-# Urdu Buddy - Interactive Urdu Learning App for Children
+# Urdu Buddy
 
-Urdu Buddy is an interactive application designed to help children learn Urdu through stories and poems. The app features:
-
-- Age-appropriate stories and poems in Urdu
-- Interactive question-answering about the content
-- Automatic story extraction from PDF books
-- Support for both stories and poems
-
-## Setup and Installation
-
-### Requirements
-- Python 3.8+
-- Node.js 14+
-- npm 6+
-
-### Installation
-
-1. Clone the repository:
-```
-git clone https://github.com/yourusername/urdu-buddy.git
-cd urdu-buddy
-```
-
-2. Install backend dependencies:
-```
-pip install -r requirements.txt
-```
-
-3. Install frontend dependencies:
-```
-npm install
-```
-
-## Extracting Stories from PDF Books
-
-Before using the app, you need to extract stories from your Urdu children's books (PDF format). The app comes with a batch extraction tool that can identify and separate individual stories and poems from PDF books.
-
-### To extract stories from a PDF book:
-
-```
-python src/batch_extract_stories.py path/to/your/book.pdf
-```
-
-### Advanced options:
-
-```
-python src/batch_extract_stories.py path/to/your/book.pdf --output-dir data/stories --default-age 5-8
-```
-
-- `--output-dir`: Sets the output directory for the extracted stories (default: data/stories)
-- `--default-age`: Sets the default age group when detection fails (default: 5-8)
-
-The extractor will:
-1. Read the PDF file
-2. Identify individual stories and poems
-3. Categorize them by type (story or poem)
-4. Analyze and assign appropriate age groups
-5. Save each as a JSON file in the data/stories directory, organized by age group
-
-## Running the Application
-
-To run the application in development mode:
-
-```
-npm run dev
-```
-
-This will start both the React frontend and Flask backend.
-
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:5000
-
-## Using the App
-
-1. **Browse Stories**: The home page shows all available stories and poems organized by age group.
-2. **Read Stories**: Click on any story to read it in its original Urdu format.
-3. **Ask Questions**: While reading a story, you can ask questions about it in English or Roman Urdu. The application will provide answers in Urdu.
-
-## App Architecture
-
-- **Frontend**: React.js with TypeScript
-- **Backend**: Flask API
-- **RAG System**: 
-  - Sentence Transformers for multilingual embeddings
-  - FAISS for efficient similarity search
-  - Context-aware question answering
-- **PDF Processing**: Automatically extracts and categorizes stories from PDF books
-
-## Technology Stack
-
-- **Frontend**: React, TypeScript, React Router
-- **Backend**: Flask, Python
-- **RAG Components**:
-  - Sentence Transformers (all-MiniLM-L6-v2)
-  - FAISS for vector similarity search
-  - Custom text chunking and embedding generation
-- **PDF Extraction**: PyPDF2, pdfplumber
+Urdu Buddy is an interactive application for learning Urdu through stories, poems, and quizzes. It features a RAG (Retrieval-Augmented Generation) system for answering questions about stories.
 
 ## Features
 
-- **Smart Text Processing**:
-  - Intelligent text chunking for Urdu content
-  - Sentence-level relevance scoring
-  - Context-aware answer generation
-- **Multilingual Support**:
-  - Urdu text processing
-  - English/Roman Urdu question support
-  - Urdu answer generation
+- Interactive Urdu stories and poems
+- AI-powered chat interface for asking questions about stories
+- Story quizzes to test comprehension
+- Vocabulary and alphabet learning tools
+
+## Prerequisites
+
+- Python 3.8 or higher
+- Node.js 14 or higher
+- npm (Node Package Manager)
+
+## Installation
+
+### Backend Setup
+
+1. Clone the repository:
+   ```
+   git clone https://github.com/yourusername/urdu-buddy.git
+   cd urdu-buddy
+   ```
+
+2. Install Python dependencies:
+   ```
+   pip install -r requirements.txt
+   ```
+
+### Frontend Setup
+
+1. Navigate to the frontend directory:
+   ```
+   cd src/frontend
+   ```
+
+2. Install npm dependencies:
+   ```
+   npm install
+   ```
+
+## Running the Application
+
+### Start the Backend Server
+
+1. From the project root directory, run:
+   ```
+   python src/flask_server.py
+   ```
+
+   This will start the Flask server on http://localhost:5000
+
+### Start the Frontend Development Server
+
+1. In a new terminal, navigate to the frontend directory:
+   ```
+   cd src/frontend
+   ```
+
+2. Start the development server:
+   ```
+   npm start
+   ```
+
+   This will start the React development server on http://localhost:3000
+
+3. Open your browser and navigate to http://localhost:3000 to use the application
+
+## Usage
+
+- Browse stories and poems in the Stories Library
+- Click on a story to read it
+- Use the chat interface at the bottom of each story to ask questions
+- Questions can be asked in English or Roman Urdu
+- The system will respond in Urdu script
+
+## Troubleshooting
+
+- If you encounter a 404 error when accessing stories, make sure both the backend and frontend servers are running
+- If the chat interface doesn't respond, check that the Flask server is running on port 5000
+- For any other issues, check the console logs in your browser's developer tools
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+[MIT License](LICENSE)

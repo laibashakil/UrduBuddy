@@ -125,8 +125,8 @@ const StoryLibrary: React.FC = () => {
       ) : (
         <div className="bookshelf">
           {filteredStories.map(story => {
-            // Keep the original ID with root/ prefix for the URL
-            const urlId = story.id;
+            // Extract the story name without the 'root/' prefix for the URL
+            const urlId = story.id.replace('root/', '');
             console.log(`Story ${story.title} - ID: ${urlId}`);
             
             return (
