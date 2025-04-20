@@ -1,0 +1,140 @@
+.App {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #ffe031; /* Bright yellow background */
+}
+
+.App-header {
+  background-color: #108b04;
+  color: white;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.app-title {
+  text-decoration: none;
+  color: white;
+}
+
+.app-title h1 {
+  margin: 0;
+  font-size: 24px;
+}
+
+.nav-links {
+  display: flex;
+  gap: 20px;
+}
+
+.nav-link {
+  color: white;
+  text-decoration: none;
+  font-size: 16px;
+  padding: 5px 10px;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+}
+
+.nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.App-main {
+  flex: 1;
+  padding: 20px;
+}
+
+.App-footer {
+  background-color: #108b04;
+  color: white;
+  text-align: center;
+  padding: 15px 0;
+  margin-top: auto;
+}
+
+.home-container {
+  position: relative;
+  z-index: 1;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 200px); /* Account for header and footer */
+}
+
+.home-title {
+  font-size: 3em;
+  color: #333;
+  margin-bottom: 2em;
+  text-align: center;
+}
+
+.button-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  z-index: 1;
+}
+
+.button {
+  padding: 20px 40px;
+  font-size: 1.5em;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  color: white;
+  font-weight: bold;
+  transition: transform 0.2s, box-shadow 0.2s;
+  width: 300px;
+  text-align: center;
+  text-decoration: none;
+}
+
+.button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.ask-button {
+  background-color: #4CAF50; /* Green */
+}
+
+.quiz-button {
+  background-color: #FF5252; /* Red */
+}
+
+.explore-button {
+  background-color: #2196F3; /* Blue */
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .App-header {
+    flex-direction: column;
+    gap: 15px;
+    padding: 15px;
+  }
+  
+  .nav-links {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .home-container {
+    padding: 30px 15px;
+  }
+  
+  .home-container h1 {
+    font-size: 28px;
+  }
+  
+  .home-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+} 

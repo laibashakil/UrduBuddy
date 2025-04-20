@@ -1,0 +1,52 @@
+/* Urdu Text Utilities */
+.urdu {
+  font-family: 'Noto Nastaliq Urdu', serif;
+  direction: rtl;
+  text-align: right;
+}
+
+.urdu-regular {
+  font-weight: 400;
+}
+
+.urdu-bold {
+  font-weight: 700;
+}
+
+.urdu-small {
+  font-size: 0.9rem;
+  line-height: 1.8;
+}
+
+.urdu-medium {
+  font-size: 1.2rem;
+  line-height: 2;
+}
+
+.urdu-large {
+  font-size: 1.5rem;
+  line-height: 2.2;
+}
+
+.urdu-xlarge {
+  font-size: 2rem;
+  line-height: 2.5;
+}
+
+/* Specific component overrides */
+.urdu-input {
+  font-family: 'Noto Nastaliq Urdu', serif;
+  direction: rtl;
+  text-align: right;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.urdu-button {
+  font-family: 'Noto Nastaliq Urdu', serif;
+  direction: rtl;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+} 

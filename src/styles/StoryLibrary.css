@@ -1,0 +1,354 @@
+.story-library {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.library-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.library-header h1 {
+  font-size: 2.5rem;
+  color: #333;
+}
+
+.add-story-btn {
+  background-color: #27ae60;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s;
+}
+
+.add-story-btn:hover {
+  background-color: #219d54;
+}
+
+.filter-section {
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: center;
+}
+
+.filters {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.filter {
+  display: flex;
+  align-items: center;
+}
+
+.filter label {
+  margin-right: 0.5rem;
+  font-weight: bold;
+}
+
+.filter select {
+  padding: 0.5rem;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  background-color: white;
+  font-size: 1rem;
+}
+
+.stories-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.story-card {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.3s, box-shadow 0.3s;
+  height: 180px;
+  display: flex;
+  flex-direction: column;
+}
+
+.story-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+}
+
+.story-card-content {
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+}
+
+.story-card-title {
+  margin: 0 0 15px 0;
+  font-size: 20px;
+  font-weight: bold;
+  color: #2c3e50;
+  text-align: right;
+  font-family: 'Noto Nastaliq Urdu', serif;
+}
+
+.story-card-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  color: #7f8c8d;
+  margin-top: auto;
+}
+
+.story-card-age, .story-card-type {
+  background-color: #f5f5f5;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.story-card-type {
+  background-color: #3498db;
+  color: white;
+}
+
+.loading, .error, .no-stories {
+  text-align: center;
+  padding: 2rem;
+  font-size: 1.2rem;
+}
+
+.error {
+  color: #e74c3c;
+}
+
+/* Bookshelf Styling */
+.bookshelf {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2rem;
+  padding: 2rem;
+  background-color: #e0d2bc;
+  border-radius: 8px;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+  position: relative;
+  border: 15px solid #8b5a2b;
+  border-top: none;
+  min-height: 300px;
+}
+
+.bookshelf::before {
+  content: '';
+  position: absolute;
+  top: -15px;
+  left: 0;
+  right: 0;
+  height: 15px;
+  background-color: #8b5a2b;
+}
+
+.book {
+  width: 140px;
+  height: 200px;
+  margin: 10px;
+  position: relative;
+  text-decoration: none;
+  color: white;
+  transition: all 0.3s ease;
+  display: flex;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+  cursor: pointer;
+  border-radius: 0 5px 5px 0;
+  perspective: 1000px;
+  transform-origin: left center;
+  overflow: hidden;
+}
+
+.book:hover {
+  transform: rotateY(25deg) scale(1.1);
+  z-index: 10;
+  box-shadow: 0 15px 25px rgba(0,0,0,0.5);
+}
+
+.book-spine {
+  width: 20px;
+  height: 100%;
+  background-color: rgba(0,0,0,0.3);
+  position: absolute;
+  left: 0;
+  top: 0;
+  border-radius: 2px 0 0 2px;
+  box-shadow: inset -2px 0 5px rgba(0,0,0,0.3);
+}
+
+.book::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 20px;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(to right, rgba(0,0,0,0.1) 0%, transparent 20%);
+  border-radius: 0 5px 5px 0;
+  pointer-events: none;
+}
+
+.book-cover {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+  text-align: center;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 0 5px 5px 0;
+  overflow: hidden;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+}
+
+.book-cover::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 0;
+}
+
+.book-title {
+  font-size: 1.4rem;
+  font-weight: bold;
+  margin: 0 0 0.5rem 0;
+  direction: rtl;
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+  position: relative;
+  z-index: 1;
+  font-family: 'Noto Nastaliq Urdu', 'Jameel Noori Nastaleeq', serif;
+}
+
+.book-type {
+  font-size: 0.9rem;
+  opacity: 0.9;
+  direction: rtl;
+  background-color: rgba(0,0,0,0.5);
+  padding: 0.3rem 0.7rem;
+  border-radius: 4px;
+  margin-top: 0.8rem;
+  position: relative;
+  z-index: 1;
+  font-family: 'Noto Nastaliq Urdu', 'Jameel Noori Nastaleeq', serif;
+}
+
+.upload-form-container {
+  background-color: #f5f5f5;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 30px;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.upload-form {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.upload-form h2 {
+  margin-top: 0;
+  color: #2c3e50;
+  margin-bottom: 20px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.form-group input, .form-group select {
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.upload-btn {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  width: 100%;
+  margin-top: 15px;
+  transition: background-color 0.3s;
+}
+
+.upload-btn:hover {
+  background-color: #2980b9;
+}
+
+.upload-btn:disabled {
+  background-color: #bdc3c7;
+  cursor: not-allowed;
+}
+
+.upload-error {
+  color: #e74c3c;
+  background-color: #fadbd8;
+  padding: 10px;
+  border-radius: 4px;
+  margin-top: 10px;
+}
+
+.upload-success {
+  color: #27ae60;
+  background-color: #d5f5e3;
+  padding: 10px;
+  border-radius: 4px;
+  margin-top: 10px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .library-header {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .filters {
+    flex-direction: column;
+    gap: 10px;
+  }
+} 
