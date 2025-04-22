@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import './StoryQuestion.css';
 
 interface Message {
@@ -19,14 +19,18 @@ const StoryQuestion: React.FC<StoryQuestionProps> = ({ storyId, storyContent }) 
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const [autoScroll, setAutoScroll] = useState(false);
 
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    };
+    // Memoize scrollToBottom function to prevent unnecessary re-renders
+    const scrollToBottom = useCallback(() => {
+        if (autoScroll && messagesEndRef.current) {
+            messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+        }
+    }, [autoScroll]);
 
     useEffect(() => {
         scrollToBottom();
-    }, [messages]);
+    }, [messages, scrollToBottom]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -36,6 +40,8 @@ const StoryQuestion: React.FC<StoryQuestionProps> = ({ storyId, storyContent }) 
         setInput('');
         setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
         setIsLoading(true);
+        // Enable auto-scroll when user sends a message
+        setAutoScroll(true);
 
         try {
             // Use the full URL for the Flask server
