@@ -186,7 +186,24 @@ class StoryHandler:
             # If not found in root and we have a location, try the subdirectory
             file_path = os.path.join(self.data_dir, parts[0], f"{story_name}.json")
         
+        # If still not found, try with different spellings or formats
         if not os.path.exists(file_path):
+            # Try with different spellings (e.g., jheel vs hheel)
+            alt_name = story_name.replace('jheel', 'hheel').replace('hheel', 'jheel')
+            alt_path = os.path.join(self.data_dir, f"{alt_name}.json")
+            
+            if os.path.exists(alt_path):
+                file_path = alt_path
+            else:
+                # Try with different formats (e.g., with or without hyphens)
+                alt_name = story_name.replace('-', '_')
+                alt_path = os.path.join(self.data_dir, f"{alt_name}.json")
+                
+                if os.path.exists(alt_path):
+                    file_path = alt_path
+        
+        if not os.path.exists(file_path):
+            print(f"Story not found: {file_path}")
             return None
             
         try:

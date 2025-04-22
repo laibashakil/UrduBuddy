@@ -21,8 +21,8 @@ Urdu Buddy is an interactive application for learning Urdu through stories, poem
 
 1. Clone the repository:
    ```
-   git clone https://github.com/yourusername/urdu-buddy.git
-   cd urdu-buddy
+   git clone https://github.com/yourusername/urdubuddy.git
+   cd urdubuddy
    ```
 
 2. Install Python dependencies:

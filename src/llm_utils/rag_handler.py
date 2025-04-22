@@ -104,17 +104,13 @@ class RAGHandler:
         self.index.add(embeddings)
         
     def get_answer(self, story_content: str, question: str) -> str:
-        """Get an answer for the given question about the story."""
+        """Get an answer to a question about the story."""
         try:
-            # Process the story if not already processed
+            # Process the story content first
             self.process_story(story_content)
             
-            # Get relevant chunks
-            relevant_chunks = self._search_relevant_chunks(question)
-            context = " ".join(relevant_chunks)
-            
-            # Generate response
-            response = self._generate_response(context, question)
+            # Get the response
+            response = self._generate_response(story_content, question)
             return response
             
         except Exception as e:

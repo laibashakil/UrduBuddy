@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Urdu Buddy - RAG Chat</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .chat-container {
+            height: calc(100vh - 200px);
+        }
+        .message {
+            max-width: 80%;
+        }
+        .user-message {
+            background-color: #e3f2fd;
+        }
+        .bot-message {
+            background-color: #f5f5f5;
+        }
+        .source-item {
+            font-size: 0.9em;
+            border-left: 3px solid #4a90e2;
+            margin-top: 0.5em;
+            padding-left: 0.5em;
+        }
+        .poem-source {
+            border-left-color: #9c27b0;
+        }
+        .story-source {
+            border-left-color: #4a90e2;
+        }
+        .content-type-badge {
+            display: inline-block;
+            padding: 0.25em 0.75em;
+            border-radius: 9999px;
+            font-size: 0.75em;
+            font-weight: 600;
+            margin-left: 0.5em;
+        }
+        .poem-badge {
+            background-color: #e1bee7;
+            color: #4a148c;
+        }
+        .story-badge {
+            background-color: #bbdefb;
+            color: #1565c0;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold text-center mb-8">Urdu Buddy - RAG Chat</h1>
+        
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <div id="chat-messages" class="chat-container overflow-y-auto mb-4 space-y-4">
+                <!-- Messages will be added here -->
+            </div>
+            
+            <div class="flex space-x-4">
+                <input type="text" id="question-input" 
+                       class="flex-1 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                       placeholder="Ask a question about stories or poems...">
+                <button onclick="askQuestion()" 
+                        class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                    Send
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const chatMessages = document.getElementById('chat-messages');
+        const questionInput = document.getElementById('question-input');
+        
+        function addMessage(content, isUser = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message rounded-lg p-4 ${isUser ? 'user-message ml-auto' : 'bot-message'}`;
+            messageDiv.innerHTML = content;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        function formatSources(sources) {
+            if (!sources || sources.length === 0) return '';
+            
+            let html = '<div class="mt-2 text-sm text-gray-600">';
+            html += '<p class="font-semibold">Sources:</p>';
+            sources.forEach((source, index) => {
+                const typeClass = source.type === 'poem' ? 'poem-source' : 'story-source';
+                const badgeClass = source.type === 'poem' ? 'poem-badge' : 'story-badge';
+                const typeText = source.type === 'poem' ? 'Poem' : 'Story';
+                
+                html += `
+                    <div class="source-item ${typeClass}">
+                        <div class="flex items-center">
+                            <p class="font-medium">Source ${index + 1} (${Math.round(source.relevance * 100)}% relevant)</p>
+                            <span class="content-type-badge ${badgeClass}">${typeText}</span>
+                        </div>
+                        ${source.title ? `<p class="text-gray-700 font-medium">${source.title}</p>` : ''}
+                        <p class="text-gray-700">${source.text}</p>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            return html;
+        }
+        
+        async function askQuestion() {
+            const question = questionInput.value.trim();
+            if (!question) return;
+            
+            // Add user message
+            addMessage(question, true);
+            questionInput.value = '';
+            
+            try {
+                const response = await fetch('/query', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ question })
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    const answer = data.data.answer;
+                    const confidence = Math.round(data.data.confidence * 100);
+                    const sources = data.data.sources;
+                    
+                    let messageContent = `
+                        <div class="font-medium">${answer}</div>
+                        <div class="text-sm text-gray-500 mt-1">Confidence: ${confidence}%</div>
+                        ${formatSources(sources)}
+                    `;
+                    
+                    addMessage(messageContent);
+                } else {
+                    addMessage('Sorry, I encountered an error processing your question.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                addMessage('Sorry, I encountered an error processing your question.');
+            }
+        }
+        
+        // Allow Enter key to submit
+        questionInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                askQuestion();
+            }
+        });
+    </script>
+</body>
+</html> 

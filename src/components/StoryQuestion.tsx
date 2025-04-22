@@ -50,7 +50,16 @@ const StoryQuestion: React.FC<StoryQuestionProps> = ({ storyId, storyContent }) 
                 }),
             });
 
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
             const data = await response.json();
+            
+            if (!data.success) {
+                throw new Error(data.error || 'Failed to get response from server');
+            }
+            
             setMessages(prev => [...prev, { role: 'assistant', content: data.response }]);
         } catch (error) {
             console.error('Error sending message:', error);

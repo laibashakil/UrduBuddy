@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import '../styles/StoryLibrary.css';
 
-interface Story {
+interface Content {
   id: string;
   title: string;
   age_group: string;
@@ -13,41 +13,41 @@ interface Story {
 // Define the API base URL
 const API_BASE_URL = 'http://localhost:5000';
 
-const StoryLibrary: React.FC = () => {
-  const [stories, setStories] = useState<Story[]>([]);
-  const [filteredStories, setFilteredStories] = useState<Story[]>([]);
+const ContentLibrary: React.FC = () => {
+  const [content, setContent] = useState<Content[]>([]);
+  const [filteredContent, setFilteredContent] = useState<Content[]>([]);
   const [selectedType, setSelectedType] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
   // Content type options
   const contentTypes = [
-    { id: '', label: 'All Types' },
+    { id: '', label: 'All Content' },
     { id: 'story', label: 'Stories' },
     { id: 'poem', label: 'Poems' }
   ];
 
-  // Fetch stories on component mount
+  // Fetch content on component mount
   useEffect(() => {
-    fetchStories();
+    fetchContent();
   }, []);
 
   // Apply filters when selection changes
   useEffect(() => {
-    let filtered = [...stories];
+    let filtered = [...content];
     
     // Filter by content type if selected
     if (selectedType) {
-      filtered = filtered.filter(story => story.type?.toLowerCase() === selectedType);
+      filtered = filtered.filter(item => item.type?.toLowerCase() === selectedType);
     }
     
-    setFilteredStories(filtered);
-  }, [selectedType, stories]);
+    setFilteredContent(filtered);
+  }, [selectedType, content]);
 
-  const fetchStories = async () => {
+  const fetchContent = async () => {
     try {
       setLoading(true);
-      console.log('Fetching stories from API...');
+      console.log('Fetching content from API...');
       // Use the full URL for the Flask server
       const response = await fetch(`${API_BASE_URL}/api/stories`);
       const data = await response.json();
@@ -55,49 +55,60 @@ const StoryLibrary: React.FC = () => {
       console.log('API response:', data);
       
       if (data.success) {
-        console.log(`Loaded ${data.stories?.length || 0} stories`);
-        setStories(data.stories || []);
-        setFilteredStories(data.stories || []);
+        console.log(`Loaded ${data.stories?.length || 0} items`);
+        setContent(data.stories || []);
+        setFilteredContent(data.stories || []);
       } else {
         console.error('API returned error:', data.error);
-        setError(data.error || 'Failed to load stories');
+        setError(data.error || 'Failed to load content');
       }
     } catch (err) {
-      console.error('Error fetching stories:', err);
-      setError('Error loading stories. Please make sure the server is running.');
+      console.error('Error fetching content:', err);
+      setError('Error loading content. Please make sure the server is running.');
     } finally {
       setLoading(false);
     }
   };
 
-  // Generate a random book color for visual variety
-  const getRandomBookColor = (id: string) => {
-    // Use the story ID to generate a consistent color for each story
-    const colors = [
+  // Generate a random color for visual variety
+  const getRandomColor = (id: string, type: string) => {
+    // Use different color palettes for stories and poems
+    const storyColors = [
+      '#4682B4', // SteelBlue
+      '#2E8B57', // SeaGreen
       '#8B4513', // SaddleBrown
       '#A52A2A', // Brown
       '#800000', // Maroon
-      '#2E8B57', // SeaGreen
-      '#4682B4', // SteelBlue
-      '#483D8B', // DarkSlateBlue
-      '#800080', // Purple
-      '#4B0082', // Indigo
-      '#556B2F', // DarkOliveGreen
-      '#B8860B', // DarkGoldenrod
     ];
     
+    const poemColors = [
+      '#800080', // Purple
+      '#4B0082', // Indigo
+      '#483D8B', // DarkSlateBlue
+      '#9370DB', // MediumPurple
+      '#8A2BE2', // BlueViolet
+    ];
+    
+    const colors = type === 'poem' ? poemColors : storyColors;
     const sum = id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
     return colors[sum % colors.length];
   };
 
-  if (loading && stories.length === 0) {
-    return <div className="loading">Loading stories...</div>;
+  // Get the correct route for the content item
+  const getContentRoute = (item: Content) => {
+    // Use /story/ route for both stories and poems
+    return `/story/${item.id}`;
+  };
+
+  if (loading && content.length === 0) {
+    return <div className="loading">Loading content...</div>;
   }
 
   return (
-    <div className="story-library">
+    <div className="content-library">
       <div className="library-header">
-        <h1>Urdu Stories Library</h1>
+        <h1>Urdu Content Library</h1>
+        <p className="subtitle">Explore our collection of stories and poems</p>
       </div>
 
       <div className="filter-section">
@@ -107,6 +118,7 @@ const StoryLibrary: React.FC = () => {
             <select
               value={selectedType}
               onChange={(e) => setSelectedType(e.target.value)}
+              className="content-type-select"
             >
               {contentTypes.map(type => (
                 <option key={type.id} value={type.id}>{type.label}</option>
@@ -118,29 +130,28 @@ const StoryLibrary: React.FC = () => {
 
       {error && <div className="error">{error}</div>}
 
-      {filteredStories.length === 0 ? (
-        <div className="no-stories">
-          <p>No stories match your selected filters.</p>
+      {filteredContent.length === 0 ? (
+        <div className="no-content">
+          <p>No content matches your selected filters.</p>
         </div>
       ) : (
-        <div className="bookshelf">
-          {filteredStories.map(story => {
-            // Extract the story name without the 'root/' prefix for the URL
-            const urlId = story.id.replace('root/', '');
-            console.log(`Story ${story.title} - ID: ${urlId}`);
-            
+        <div className="content-grid">
+          {filteredContent.map(item => {
             return (
               <Link 
-                to={`/story/${urlId}`} 
-                key={story.id} 
-                className="book"
-                style={{ backgroundColor: getRandomBookColor(story.id) }}
+                to={getContentRoute(item)}
+                key={item.id} 
+                className={`content-item ${item.type.toLowerCase()}`}
+                style={{ backgroundColor: getRandomColor(item.id, item.type) }}
               >
-                <div className="book-spine"></div>
-                <div className="book-cover">
-                  <h2 className="book-title">{story.title}</h2>
-                  <div className="book-type">
-                    {story.type === 'poem' ? 'نظم' : 'کہانی'}
+                <div className="content-spine"></div>
+                <div className="content-cover">
+                  <h2 className="content-title">{item.title}</h2>
+                  <div className="content-type">
+                    {item.type === 'poem' ? 'نظم' : 'کہانی'}
+                  </div>
+                  <div className="content-age">
+                    Age: {item.age_group}
                   </div>
                 </div>
               </Link>
@@ -152,4 +163,4 @@ const StoryLibrary: React.FC = () => {
   );
 };
 
-export default StoryLibrary; 
+export default ContentLibrary; 

@@ -1,17 +1,231 @@
-.story-library {
+.content-library {
+  padding: 2rem;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem;
+  min-height: 100vh;
+  background-color: #f5f5f5;
 }
 
 .library-header {
   text-align: center;
   margin-bottom: 2rem;
+  padding: 2rem;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .library-header h1 {
   font-size: 2.5rem;
   color: #333;
+  margin-bottom: 0.5rem;
+  font-family: 'Noto Nastaliq Urdu', serif;
+}
+
+.subtitle {
+  font-size: 1.2rem;
+  color: #666;
+  margin-top: 0.5rem;
+}
+
+.filter-section {
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.filters {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.filter {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.filter label {
+  font-weight: bold;
+  color: #333;
+}
+
+.content-type-select {
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 1rem;
+  min-width: 150px;
+}
+
+.content-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 2rem;
+  padding: 1rem;
+}
+
+.content-item {
+  position: relative;
+  height: 300px;
+  border-radius: 10px;
+  overflow: hidden;
+  text-decoration: none;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.content-item:hover {
+  transform: translateY(-5px) scale(1.02);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+}
+
+.content-item.poem {
+  background: linear-gradient(45deg, #9c27b0, #673ab7);
+}
+
+.content-item.poem .content-spine {
+  background-color: rgba(156, 39, 176, 0.3);
+}
+
+.content-item.poem .content-type {
+  background-color: rgba(156, 39, 176, 0.2);
+}
+
+.content-item.story {
+  background: linear-gradient(45deg, #1976d2, #2196f3);
+}
+
+.content-item.story .content-spine {
+  background-color: rgba(25, 118, 210, 0.3);
+}
+
+.content-item.story .content-type {
+  background-color: rgba(25, 118, 210, 0.2);
+}
+
+.content-spine {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 20px;
+  transition: width 0.3s ease;
+}
+
+.content-item:hover .content-spine {
+  width: 25px;
+}
+
+.content-cover {
+  position: absolute;
+  left: 20px;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  color: white;
+  background: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 0.2) 0%,
+    rgba(0, 0, 0, 0.1) 100%
+  );
+  transition: transform 0.3s ease;
+}
+
+.content-item:hover .content-cover {
+  transform: translateX(5px);
+}
+
+.content-title {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  font-family: 'Noto Nastaliq Urdu', serif;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.content-type {
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+  font-family: 'Noto Nastaliq Urdu', serif;
+  padding: 0.3rem 0.8rem;
+  border-radius: 15px;
+  transition: transform 0.3s ease;
+}
+
+.content-item:hover .content-type {
+  transform: scale(1.1);
+}
+
+.content-age {
+  font-size: 0.9rem;
+  opacity: 0.9;
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 0.2rem 0.6rem;
+  border-radius: 10px;
+  margin-top: 0.5rem;
+}
+
+.loading {
+  text-align: center;
+  padding: 2rem;
+  font-size: 1.2rem;
+  color: #666;
+}
+
+.error {
+  text-align: center;
+  padding: 1rem;
+  margin: 1rem 0;
+  background-color: #ffebee;
+  color: #c62828;
+  border-radius: 5px;
+}
+
+.no-content {
+  text-align: center;
+  padding: 2rem;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  color: #666;
+}
+
+@media (max-width: 768px) {
+  .content-library {
+    padding: 1rem;
+  }
+
+  .content-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+
+  .content-item {
+    height: 250px;
+  }
+
+  .content-title {
+    font-size: 1.2rem;
+  }
+
+  .filters {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .filter {
+    width: 100%;
+    max-width: 300px;
+  }
 }
 
 .add-story-btn {
@@ -27,107 +241,6 @@
 
 .add-story-btn:hover {
   background-color: #219d54;
-}
-
-.filter-section {
-  margin-bottom: 2rem;
-  display: flex;
-  justify-content: center;
-}
-
-.filters {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.filter {
-  display: flex;
-  align-items: center;
-}
-
-.filter label {
-  margin-right: 0.5rem;
-  font-weight: bold;
-}
-
-.filter select {
-  padding: 0.5rem;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-  background-color: white;
-  font-size: 1rem;
-}
-
-.stories-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 20px;
-}
-
-.story-card {
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  text-decoration: none;
-  color: inherit;
-  transition: transform 0.3s, box-shadow 0.3s;
-  height: 180px;
-  display: flex;
-  flex-direction: column;
-}
-
-.story-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
-}
-
-.story-card-content {
-  padding: 15px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  height: 100%;
-}
-
-.story-card-title {
-  margin: 0 0 15px 0;
-  font-size: 20px;
-  font-weight: bold;
-  color: #2c3e50;
-  text-align: right;
-  font-family: 'Noto Nastaliq Urdu', serif;
-}
-
-.story-card-meta {
-  display: flex;
-  justify-content: space-between;
-  font-size: 14px;
-  color: #7f8c8d;
-  margin-top: auto;
-}
-
-.story-card-age, .story-card-type {
-  background-color: #f5f5f5;
-  padding: 4px 8px;
-  border-radius: 4px;
-}
-
-.story-card-type {
-  background-color: #3498db;
-  color: white;
-}
-
-.loading, .error, .no-stories {
-  text-align: center;
-  padding: 2rem;
-  font-size: 1.2rem;
-}
-
-.error {
-  color: #e74c3c;
 }
 
 /* Bookshelf Styling */

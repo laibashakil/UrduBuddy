@@ -11,7 +11,7 @@ app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "*", "methods": ["GET", "POST", "OPTIONS"], "allow_headers": ["Content-Type"]}})
 
 print("Initializing Flask server...")
-story_handler = StoryHandler("data/stories")
+story_handler = StoryHandler("data")
 print(f"Story handler: {story_handler}")
 print(f"LLM handler: {llm_handler}")
 
@@ -62,16 +62,12 @@ def get_stories():
     try:
         # Direct implementation to read all stories
         stories = []
-        stories_dir = os.path.join('data', 'stories')
+        data_dir = 'data'
         
-        print(f"Reading stories from directory: {stories_dir}")
-        print(f"Directory exists: {os.path.exists(stories_dir)}")
-        print(f"Directory contents: {os.listdir(stories_dir)}")
-        
-        # Read stories from the root directory
-        for filename in os.listdir(stories_dir):
+        # Read stories from the data directory
+        for filename in os.listdir(data_dir):
             if filename.endswith('.json'):
-                file_path = os.path.join(stories_dir, filename)
+                file_path = os.path.join(data_dir, filename)
                 if os.path.isfile(file_path):
                     try:
                         with open(file_path, 'r', encoding='utf-8') as f:
@@ -107,10 +103,11 @@ def get_stories():
             'stories': stories
         })
     except Exception as e:
-        app.logger.error(f"Error in get_stories: {str(e)}")
+        error_msg = f"Error in get_stories: {str(e)}"
+        print(error_msg)
         return jsonify({
             'success': False,
-            'error': str(e)
+            'error': error_msg
         }), 500
 
 @app.route('/api/stories/<path:story_id>', methods=['GET'])
@@ -138,18 +135,18 @@ def get_story(story_id):
             
         print(f"Story name: {story_name}")
         
-        # Determine the actual file path
-        stories_dir = os.path.join('data', 'stories')
+        # Look in the data directory directly
+        data_dir = 'data'
         
-        # List all files in the stories directory
-        all_files = os.listdir(stories_dir)
-        print(f"All files in stories directory: {all_files}")
+        # List all files in the data directory
+        all_files = os.listdir(data_dir) if os.path.exists(data_dir) else []
+        print(f"All files in data directory: {all_files}")
         
         # Try to find the file with the exact name
-        file_path = os.path.join(stories_dir, f"{story_name}.json")
+        file_path = os.path.join(data_dir, f"{story_name}.json")
         print(f"Looking for file at: {file_path}")
         
-        # If file doesn't exist, try to find a matching file
+        # Check if file exists
         if not os.path.exists(file_path):
             print(f"File not found at exact path: {file_path}")
             
@@ -158,12 +155,12 @@ def get_story(story_id):
             print(f"Matching files: {matching_files}")
             
             if matching_files:
-                file_path = os.path.join(stories_dir, matching_files[0])
+                file_path = os.path.join(data_dir, matching_files[0])
                 print(f"Found matching file: {file_path}")
             else:
-                # Try with 'j' instead of 'jh' and vice versa
+                # Try with different spellings
                 alt_name = story_name.replace('jheel', 'jheel').replace('jheel', 'jheel')
-                alt_path = os.path.join(stories_dir, f"{alt_name}.json")
+                alt_path = os.path.join(data_dir, f"{alt_name}.json")
                 print(f"Trying alternative path: {alt_path}")
                 
                 if os.path.exists(alt_path):
@@ -172,7 +169,7 @@ def get_story(story_id):
                 else:
                     # Try with 'h' instead of 'j'
                     alt_name = story_name.replace('jheel', 'hheel')
-                    alt_path = os.path.join(stories_dir, f"{alt_name}.json")
+                    alt_path = os.path.join(data_dir, f"{alt_name}.json")
                     print(f"Trying another alternative path: {alt_path}")
                     
                     if os.path.exists(alt_path):
@@ -181,7 +178,7 @@ def get_story(story_id):
                     else:
                         # Try with 'j' instead of 'h'
                         alt_name = story_name.replace('hheel', 'jheel')
-                        alt_path = os.path.join(stories_dir, f"{alt_name}.json")
+                        alt_path = os.path.join(data_dir, f"{alt_name}.json")
                         print(f"Trying yet another alternative path: {alt_path}")
                         
                         if os.path.exists(alt_path):
@@ -191,7 +188,7 @@ def get_story(story_id):
                             # If all else fails, try to find any file that contains the story name
                             for file in all_files:
                                 if story_name in file and file.endswith('.json'):
-                                    file_path = os.path.join(stories_dir, file)
+                                    file_path = os.path.join(data_dir, file)
                                     print(f"Found file containing story name: {file_path}")
                                     break
         
@@ -312,6 +309,7 @@ def chat_about_story(story_id):
             }), 400
             
         message = data['message']
+        context = data.get('context', '')  # Get context if provided
         
         # Get story content
         story_data = story_handler.get_story_content(story_id)
@@ -329,8 +327,11 @@ def chat_about_story(story_id):
                 "error": "Story has no content"
             }), 400
             
+        # Use provided context if available, otherwise use story content
+        content_to_use = context if context else story_content
+            
         # Get response from LLM
-        response = llm_handler.chat_about_story(story_content, message)
+        response = llm_handler.chat_about_story(content_to_use, message)
         
         if not response.get('success'):
             return jsonify({
