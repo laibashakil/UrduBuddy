@@ -17,7 +17,6 @@ Urdu Buddy is an interactive application for learning Urdu through stories, poem
 
 ## Installation
 
-### Backend Setup
 
 1. Clone the repository:
    ```
@@ -30,44 +29,26 @@ Urdu Buddy is an interactive application for learning Urdu through stories, poem
    pip install -r requirements.txt
    ```
 
-### Frontend Setup
-
-1. Navigate to the frontend directory:
-   ```
-   cd src/frontend
-   ```
-
-2. Install npm dependencies:
+3. Install npm dependencies:
    ```
    npm install
    ```
 
-## Running the Application
 
-### Start the Backend Server
-
-1. From the project root directory, run:
+4. From the project root directory, run:
    ```
    python src/flask_server.py
    ```
 
    This will start the Flask server on http://localhost:5000
 
-### Start the Frontend Development Server
-
-1. In a new terminal, navigate to the frontend directory:
-   ```
-   cd src/frontend
-   ```
-
-2. Start the development server:
+5. Start the Frontend Development Server
    ```
    npm start
    ```
 
    This will start the React development server on http://localhost:3000
 
-3. Open your browser and navigate to http://localhost:3000 to use the application
 
 ## Usage
 
