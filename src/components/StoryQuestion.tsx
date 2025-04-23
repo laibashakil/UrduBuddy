@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import './StoryQuestion.css';
 
 interface Message {
@@ -26,18 +26,6 @@ const StoryQuestion: React.FC<StoryQuestionProps> = ({ storyId, storyContent }) 
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const messagesEndRef = useRef<HTMLDivElement>(null);
-
-    // Scroll to bottom whenever messages change
-    const scrollToBottom = useCallback(() => {
-        if (messagesEndRef.current) {
-            messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-        }
-    }, []);
-
-    useEffect(() => {
-        scrollToBottom();
-    }, [messages, scrollToBottom]);
 
     const handleQuestionClick = (question: string) => {
         setInput(question);
@@ -83,8 +71,6 @@ const StoryQuestion: React.FC<StoryQuestionProps> = ({ storyId, storyContent }) 
             }]);
         } finally {
             setIsLoading(false);
-            // Ensure scroll to bottom after new message
-            setTimeout(scrollToBottom, 100);
         }
     };
 
@@ -122,7 +108,6 @@ const StoryQuestion: React.FC<StoryQuestionProps> = ({ storyId, storyContent }) 
                         </div>
                     </div>
                 )}
-                <div ref={messagesEndRef} />
             </div>
 
             <form onSubmit={handleSubmit} className="chat-input">

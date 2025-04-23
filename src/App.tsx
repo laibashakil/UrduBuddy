@@ -4,6 +4,8 @@ import './App.css';
 import './styles/urdu.css';
 import StoryLibrary from './components/StoryLibrary';
 import StoryReader from './components/StoryReader';
+import QuizLibrary from './components/QuizLibrary';
+import Quiz from './components/Quiz';
 
 function App() {
   return (
@@ -16,6 +18,7 @@ function App() {
           <nav className="nav-links">
             <Link to="/" className="nav-link">Home</Link>
             <Link to="/stories" className="nav-link">Stories</Link>
+            <Link to="/quizzes" className="nav-link">Quizzes</Link>
           </nav>
         </header>
         
@@ -25,15 +28,17 @@ function App() {
               <div className="home-container">
                 <h1 className="home-title">Welcome to Urdu Buddy</h1>
                 <div className="button-container">
-                  <Link to="/ask" className="button ask-button">Ask About Stories</Link>
-                  <Link to="/quizzes" className="button quiz-button">Story Quizzes</Link>
                   <Link to="/stories" className="button explore-button">Explore Stories</Link>
+                  <Link to="/quizzes" className="button quiz-button">Story Quizzes</Link>
                 </div>
               </div>
             } />
             <Route path="/stories" element={<StoryLibrary />} />
             <Route path="/story/:storyId" element={<StoryReaderWrapper />} />
             <Route path="/story/root/:storyId" element={<StoryReaderWrapper />} />
+            <Route path="/quizzes" element={<QuizLibrary />} />
+            <Route path="/quiz/:storyId" element={<QuizWrapper />} />
+            <Route path="/quiz/root/:storyId" element={<QuizWrapper />} />
           </Routes>
         </main>
         
@@ -53,6 +58,16 @@ function StoryReaderWrapper() {
   console.log('StoryReaderWrapper - storyId from params:', storyId);
   
   return <StoryReader storyId={storyId || ''} />;
+}
+
+// Wrapper to extract the storyId parameter for the Quiz component
+function QuizWrapper() {
+  const params = useParams<{ storyId: string }>();
+  const storyId = params.storyId;
+  
+  console.log('QuizWrapper - storyId from params:', storyId);
+  
+  return <Quiz storyId={storyId || ''} />;
 }
 
 export default App; 

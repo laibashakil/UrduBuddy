@@ -2,6 +2,8 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import json
 import os
+import cohere
+from dotenv import load_dotenv
 
 from llm_utils.llm_handler import llm_handler
 from story_handler import StoryHandler
@@ -14,6 +16,9 @@ print("Initializing Flask server...")
 story_handler = StoryHandler("data")
 print(f"Story handler: {story_handler}")
 print(f"LLM handler: {llm_handler}")
+
+# Initialize Cohere client
+co = cohere.Client(os.getenv('COHERE_API_KEY'))
 
 def load_json_file(filename):
     """Load data from a JSON file"""
@@ -320,6 +325,107 @@ def chat_about_story(story_id):
         return jsonify({
             "success": False,
             "error": str(e)
+        }), 500
+
+@app.route('/api/generate-questions', methods=['POST'])
+def generate_questions():
+    try:
+        data = request.get_json()
+        story = data.get('story')
+        num_questions = data.get('numQuestions', 5)
+
+        if not story:
+            return jsonify({
+                'success': False,
+                'error': 'Story content is required'
+            }), 400
+
+        # Create a prompt for Cohere to generate questions
+        prompt = f"""Given the following Urdu story, generate {num_questions} comprehension questions and their answers in Urdu.
+        Format each question and answer as a numbered list.
+        
+        Story:
+        {story}
+        
+        Generate questions in this format:
+        1. question: [سوال]
+        answer: [جواب]
+        2. question: [سوال]
+        answer: [جواب]
+        """
+
+        # Generate questions using Cohere
+        response = co.generate(
+            prompt=prompt,
+            max_tokens=500,
+            temperature=0.7,
+            k=0,
+            stop_sequences=[],
+            return_likelihoods='NONE'
+        )
+
+        # Parse the generated text to extract questions and answers
+        try:
+            generated_text = response.generations[0].text
+            print("Generated text:", generated_text)  # Debug print
+            
+            # Split the text into lines
+            lines = generated_text.split('\n')
+            questions = []
+            current_question = None
+            current_answer = None
+            
+            for line in lines:
+                line = line.strip()
+                if not line:
+                    continue
+                    
+                if line.startswith(('1.', '2.', '3.', '4.', '5.')):
+                    # If we have a previous question, add it to the list
+                    if current_question and current_answer:
+                        questions.append({
+                            'question': current_question,
+                            'answer': current_answer
+                        })
+                    
+                    # Start new question
+                    parts = line.split('question:', 1)
+                    if len(parts) > 1:
+                        current_question = parts[1].strip()
+                        current_answer = None
+                elif line.startswith('answer:'):
+                    if current_question:
+                        current_answer = line.split('answer:', 1)[1].strip()
+            
+            # Add the last question if exists
+            if current_question and current_answer:
+                questions.append({
+                    'question': current_question,
+                    'answer': current_answer
+                })
+            
+            # Validate we got the right number of questions
+            if len(questions) != num_questions:
+                raise ValueError(f"Expected {num_questions} questions, got {len(questions)}")
+            
+            return jsonify({
+                'success': True,
+                'questions': questions
+            })
+            
+        except Exception as e:
+            print(f"Error parsing Cohere response: {e}")
+            print("Full response:", response.generations[0].text)
+            return jsonify({
+                'success': False,
+                'error': f'Failed to generate valid questions: {str(e)}'
+            }), 500
+
+    except Exception as e:
+        print(f"Error in generate_questions: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
         }), 500
 
 if __name__ == '__main__':

@@ -28,25 +28,27 @@ class LLMHandler:
             question = question.strip()
             
             # Create a focused prompt for children's questions
-            prompt = f"""یہ کہانی پڑھیں۔ ایک بچہ اس کہانی کے بارے میں سوال پوچھے گا۔ 
-براہ کرم:
-1. صرف کہانی کے مطابق جواب دیں
-2. مختصر اور آسان جواب دیں
-3. کوئی اضافی معلومات نہ دیں
-4. صرف وہی بتائیں جو کہانی میں ہے
+            prompt = f"""Read this story. A child will ask a question about this story.
+Please:
+1. Answer only based on the story content
+2. Keep the answer short and simple
+3. Do not provide any additional information
+4. Only tell what is mentioned in the story
 
-کہانی:
+Story:
 {story_content}
 
-بچے کا سوال: {question}
+Child's question: {question}
 
-جواب:"""
+Please provide your answer in Urdu language.
+"""
             
             # Get response from Cohere
             response = self.co.generate(
+                model="command",  # Using Cohere's Command model
                 prompt=prompt,
                 max_tokens=200,  # Reduced for shorter responses
-                temperature=0.2,  # Lower temperature for more focused responses
+                temperature=0.3,  # Lower temperature for more focused responses
                 k=0,
                 stop_sequences=["\n", "بچے کا سوال:", "کہانی:"],  # Stop at newlines or new questions
                 return_likelihoods='NONE'
