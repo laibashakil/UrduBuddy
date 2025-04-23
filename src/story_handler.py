@@ -2,11 +2,7 @@ import os
 import json
 from typing import Dict, List, Any, Optional
 import re
-from llm_utils import llm_handler
-from sentence_transformers import SentenceTransformer
-import faiss
-import numpy as np
-import torch
+from llm_utils.llm_handler import chat_about_story
 
 class StoryHandler:
     def __init__(self, data_dir: str = "data/stories"):
@@ -16,76 +12,6 @@ class StoryHandler:
         # Cache for story data to avoid frequent disk reads
         self.story_cache = {}
         
-        # Initialize the LLM handler
-        self.llm_handler = llm_handler
-        
-        # Initialize RAG components
-        print("Initializing RAG system...")
-        self.embedding_model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
-        self.story_embeddings = None
-        self.story_texts = []
-        self.faiss_index = None
-        
-        # Load and index all stories for RAG
-        self._initialize_rag()
-        
-    def _initialize_rag(self):
-        """Initialize the RAG system by loading and indexing all stories."""
-        print("Loading stories for RAG indexing...")
-        stories = self.get_all_stories()
-        
-        # Collect all story contents
-        for story in stories:
-            story_content = self.get_story_content(story['id'])
-            if story_content and 'content' in story_content:
-                # Split content into smaller chunks for better retrieval
-                chunks = self._split_into_chunks(story_content['content'])
-                for chunk in chunks:
-                    self.story_texts.append({
-                        'text': chunk,
-                        'story_id': story['id'],
-                        'title': story_content.get('title', 'Untitled')
-                    })
-        
-        if not self.story_texts:
-            print("No stories found for indexing!")
-            return
-            
-        print(f"Creating embeddings for {len(self.story_texts)} story chunks...")
-        texts = [item['text'] for item in self.story_texts]
-        self.story_embeddings = self.embedding_model.encode(texts)
-        
-        # Create FAISS index
-        dimension = self.story_embeddings.shape[1]
-        self.faiss_index = faiss.IndexFlatL2(dimension)
-        self.faiss_index.add(np.array(self.story_embeddings).astype('float32'))
-        print("RAG system initialized successfully!")
-        
-    def _split_into_chunks(self, text: str, chunk_size: int = 200) -> List[str]:
-        """Split text into smaller chunks for better retrieval."""
-        # Split by sentences (assuming sentences end with ۔)
-        sentences = text.split('۔')
-        chunks = []
-        current_chunk = []
-        current_length = 0
-        
-        for sentence in sentences:
-            sentence = sentence.strip() + '۔'
-            sentence_length = len(sentence.split())
-            
-            if current_length + sentence_length > chunk_size and current_chunk:
-                chunks.append(' '.join(current_chunk))
-                current_chunk = [sentence]
-                current_length = sentence_length
-            else:
-                current_chunk.append(sentence)
-                current_length += sentence_length
-        
-        if current_chunk:
-            chunks.append(' '.join(current_chunk))
-            
-        return chunks
-    
     def get_all_stories(self) -> List[Dict[str, Any]]:
         """
         Get metadata for all available stories
@@ -218,44 +144,57 @@ class StoryHandler:
             return None
     
     def answer_question(self, story_id: str, question: str) -> dict:
-        """Answer a question about a specific story using RAG."""
+        """Answer a question about a specific story using direct prompt."""
         try:
-            if not self.faiss_index:
+            # Validate inputs
+            if not story_id or not question:
                 return {
-                    'error': 'RAG system not initialized',
+                    'error': 'Story ID and question are required',
                     'success': False,
                     'found': False
                 }
             
-            # Get question embedding
-            question_embedding = self.embedding_model.encode([question])
-            
-            # Search for relevant chunks
-            k = 3  # Number of chunks to retrieve
-            distances, indices = self.faiss_index.search(
-                np.array(question_embedding).astype('float32'), k
-            )
-            
-            # Get relevant chunks from the same story
-            relevant_chunks = []
-            for idx in indices[0]:
-                chunk_data = self.story_texts[idx]
-                if chunk_data['story_id'] == story_id:
-                    relevant_chunks.append(chunk_data['text'])
-            
-            if not relevant_chunks:
-                # If no chunks from the specific story found, return error
+            # Sanitize inputs
+            question = question.strip()
+            if len(question) > 500:  # Limit question length
                 return {
-                    'error': 'No relevant content found in the story',
+                    'error': 'Question is too long. Please keep it under 500 characters.',
+                    'success': False,
+                    'found': False
+                }
+            
+            # Get the story content
+            story_data = self.get_story_content(story_id)
+            if not story_data:
+                return {
+                    'error': 'Story not found',
+                    'success': False,
+                    'found': False
+                }
+            
+            # Get the story content
+            story_content = story_data.get('content', '')
+            if not story_content:
+                return {
+                    'error': 'Story has no content',
                     'success': False,
                     'found': True
                 }
             
-            # Combine relevant chunks as context
-            context = ' '.join(relevant_chunks)
+            # For title questions, just use the title
+            if 'عنوان' in question or 'title' in question.lower():
+                story_content = story_data.get('title', '')
             
-            # Use the LLM handler to answer the question with the retrieved context
-            llm_response = self.llm_handler.chat_about_story(context, question)
+            # For summary questions, use the summary if available
+            elif 'خلاصہ' in question or 'summary' in question.lower():
+                story_content = story_data.get('summary', story_content)
+            
+            # For other questions, use the full content but limit length
+            if len(story_content) > 10000:  # Limit story length
+                story_content = story_content[:10000]
+            
+            # Use the LLM handler to answer the question with the story content
+            llm_response = chat_about_story(story_content, question)
             
             if not llm_response.get('success'):
                 return {
@@ -268,7 +207,7 @@ class StoryHandler:
                 'success': True,
                 'found': True,
                 'response': llm_response.get('response', ''),
-                'story_title': self.story_texts[indices[0][0]]['title']
+                'story_title': story_data.get('title', 'Untitled')
             }
             
         except Exception as e:

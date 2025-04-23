@@ -40,12 +40,13 @@ def ask_question():
         if story_id:
             # Answer question about specific story
             result = story_handler.answer_question(story_id, question)
-            return jsonify(result)  # Return the result directly as it already has the correct format
+            return jsonify(result)
         else:
+            # For general questions, return a message to use story-specific questions
             return jsonify({
                 'success': False,
-                'error': 'Story ID is required'
-            }), 400
+                'error': 'Please ask questions about specific stories'
+            })
     except Exception as e:
         print(f"Error processing question: {e}")
         return jsonify({
@@ -309,40 +310,10 @@ def chat_about_story(story_id):
             }), 400
             
         message = data['message']
-        context = data.get('context', '')  # Get context if provided
         
-        # Get story content
-        story_data = story_handler.get_story_content(story_id)
-        if not story_data:
-            return jsonify({
-                "success": False,
-                "error": "Story not found"
-            }), 404
-            
-        # Extract the actual content from story data
-        story_content = story_data.get('content', '')
-        if not story_content:
-            return jsonify({
-                "success": False,
-                "error": "Story has no content"
-            }), 400
-            
-        # Use provided context if available, otherwise use story content
-        content_to_use = context if context else story_content
-            
-        # Get response from LLM
-        response = llm_handler.chat_about_story(content_to_use, message)
-        
-        if not response.get('success'):
-            return jsonify({
-                "success": False,
-                "error": "Failed to generate response"
-            }), 500
-            
-        return jsonify({
-            "success": True,
-            "response": response.get('response', '')
-        })
+        # Use the story handler to get answer
+        result = story_handler.answer_question(story_id, message)
+        return jsonify(result)
         
     except Exception as e:
         print(f"Error in chat_about_story: {e}")

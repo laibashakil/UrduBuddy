@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import StoryChat from '../components/StoryChat';
 import '../styles/StoryDetail.css';
 
 interface Content {
@@ -19,12 +20,21 @@ const StoryDetail: React.FC = () => {
   useEffect(() => {
     const fetchContent = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/api/content/${id}`);
+        const response = await fetch(`http://localhost:5000/api/stories/${id}`);
         if (!response.ok) {
           throw new Error('Content not found');
         }
         const data = await response.json();
-        setContent(data);
+        if (data.success && data.story) {
+          setContent({
+            id: id || '',
+            title: data.story.title || 'Untitled',
+            content: data.story.content || '',
+            type: data.story.type || 'story'
+          });
+        } else {
+          throw new Error('Invalid story data');
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred');
       } finally {
@@ -32,7 +42,9 @@ const StoryDetail: React.FC = () => {
       }
     };
 
-    fetchContent();
+    if (id) {
+      fetchContent();
+    }
   }, [id]);
 
   if (loading) {
@@ -59,6 +71,10 @@ const StoryDetail: React.FC = () => {
         {content.content.split('\n').map((paragraph, index) => (
           <p key={index}>{paragraph}</p>
         ))}
+      </div>
+      <div className="chat-section">
+        <h2>کہانی کے بارے میں پوچھیں</h2>
+        <StoryChat storyId={content.id} />
       </div>
     </div>
   );
