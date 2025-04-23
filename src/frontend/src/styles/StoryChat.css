@@ -1,7 +1,7 @@
 .story-chat {
   display: flex;
   flex-direction: column;
-  min-height: 600px;
+  min-height: 800px;
   max-width: 800px;
   margin: 0 auto;
   padding: 20px;

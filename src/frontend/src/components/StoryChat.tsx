@@ -82,6 +82,11 @@ const StoryChat: React.FC<StoryChatProps> = ({ storyId }) => {
 
   return (
     <div className="story-chat">
+      <div className="chat-header">
+        <h2>کہانی کے بارے میں  کریں</h2>
+        <p className="language-hint">آپ انگریزی یااردو میں سوال پوچھ سکتے ہیں۔</p>
+      </div>
+
       <div className="common-questions">
         {commonQuestions.map((question, index) => (
           <button

@@ -45,7 +45,7 @@ class LLMHandler:
             # Get response from Cohere
             response = self.co.generate(
                 prompt=prompt,
-                max_tokens=100,  # Reduced for shorter responses
+                max_tokens=200,  # Reduced for shorter responses
                 temperature=0.2,  # Lower temperature for more focused responses
                 k=0,
                 stop_sequences=["\n", "بچے کا سوال:", "کہانی:"],  # Stop at newlines or new questions

@@ -11,6 +11,14 @@ interface StoryQuestionProps {
     storyContent: string;
 }
 
+// Common questions in Urdu
+const commonQuestions = [
+    "کہانی کا خلاصہ بتائیں",
+    "کہانی کا سبق کیا ہے؟",
+    "کہانی کے اہم کردار کون ہیں؟",
+    "کہانی کا اختتام کیسے ہوا؟"
+];
+
 // Define the API base URL
 const API_BASE_URL = 'http://localhost:5000';
 
@@ -19,18 +27,21 @@ const StoryQuestion: React.FC<StoryQuestionProps> = ({ storyId, storyContent }) 
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
-    const [autoScroll, setAutoScroll] = useState(false);
 
-    // Memoize scrollToBottom function to prevent unnecessary re-renders
+    // Scroll to bottom whenever messages change
     const scrollToBottom = useCallback(() => {
-        if (autoScroll && messagesEndRef.current) {
+        if (messagesEndRef.current) {
             messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
         }
-    }, [autoScroll]);
+    }, []);
 
     useEffect(() => {
         scrollToBottom();
     }, [messages, scrollToBottom]);
+
+    const handleQuestionClick = (question: string) => {
+        setInput(question);
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -40,11 +51,8 @@ const StoryQuestion: React.FC<StoryQuestionProps> = ({ storyId, storyContent }) 
         setInput('');
         setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
         setIsLoading(true);
-        // Enable auto-scroll when user sends a message
-        setAutoScroll(true);
 
         try {
-            // Use the full URL for the Flask server
             const response = await fetch(`${API_BASE_URL}/api/stories/${storyId}/chat`, {
                 method: 'POST',
                 headers: {
@@ -75,15 +83,30 @@ const StoryQuestion: React.FC<StoryQuestionProps> = ({ storyId, storyContent }) 
             }]);
         } finally {
             setIsLoading(false);
+            // Ensure scroll to bottom after new message
+            setTimeout(scrollToBottom, 100);
         }
     };
 
     return (
         <div className="story-chat">
             <div className="chat-header">
-                <h2>کہانی کے بارے میں بات کریں</h2>
-                <p className="language-hint">آپ انگریزی یا رومن اردو میں سوال پوچھ سکتے ہیں، جواب اردو میں دیا جائے گا۔</p>
+                <h2>کہانی یا نظم سے سوالات پوچھیں</h2>
+                <p className="language-hint">آپ انگریزی یااردو میں سوال پوچھ سکتے ہیں۔</p>
             </div>
+            
+            <div className="common-questions">
+                {commonQuestions.map((question, index) => (
+                    <button
+                        key={index}
+                        className="question-button"
+                        onClick={() => handleQuestionClick(question)}
+                    >
+                        {question}
+                    </button>
+                ))}
+            </div>
+
             <div className="chat-messages">
                 {messages.map((message, index) => (
                     <div key={index} className={`message ${message.role}`}>
@@ -101,12 +124,13 @@ const StoryQuestion: React.FC<StoryQuestionProps> = ({ storyId, storyContent }) 
                 )}
                 <div ref={messagesEndRef} />
             </div>
+
             <form onSubmit={handleSubmit} className="chat-input">
                 <input
                     type="text"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
-                    placeholder="انگریزی یا رومن اردو میں اپنا پیغام ٹائپ کریں..."
+                    placeholder="اپنا سوال یہاں ٹائپ کریں"
                     disabled={isLoading}
                 />
                 <button type="submit" disabled={isLoading}>
