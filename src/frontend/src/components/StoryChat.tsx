@@ -22,6 +22,7 @@ const StoryChat: React.FC<StoryChatProps> = ({ storyId }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [abortController, setAbortController] = useState<AbortController | null>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -48,6 +49,10 @@ const StoryChat: React.FC<StoryChatProps> = ({ storyId }) => {
     setMessages(prev => [...prev, { text: userMessage, isUser: true }]);
     setIsLoading(true);
 
+    // Create new AbortController for this request
+    const controller = new AbortController();
+    setAbortController(controller);
+
     try {
       const response = await fetch(`http://localhost:5000/api/stories/${storyId}/chat`, {
         method: 'POST',
@@ -55,6 +60,7 @@ const StoryChat: React.FC<StoryChatProps> = ({ storyId }) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ message: userMessage }),
+        signal: controller.signal
       });
 
       const data = await response.json();
@@ -66,13 +72,29 @@ const StoryChat: React.FC<StoryChatProps> = ({ storyId }) => {
           isUser: false 
         }]);
       }
-    } catch (error) {
-      setMessages(prev => [...prev, { 
-        text: 'معذرت، ایک خرابی پیش آگئی ہے۔', 
-        isUser: false 
-      }]);
+    } catch (error: any) {
+      if (error.name === 'AbortError') {
+        setMessages(prev => [...prev, { 
+          text: 'جواب روک دیا گیا۔', 
+          isUser: false 
+        }]);
+      } else {
+        setMessages(prev => [...prev, { 
+          text: 'معذرت، ایک خرابی پیش آگئی ہے۔', 
+          isUser: false 
+        }]);
+      }
     } finally {
       setIsLoading(false);
+      setAbortController(null);
+    }
+  };
+
+  const handleStop = () => {
+    if (abortController) {
+      abortController.abort();
+      setIsLoading(false);
+      setAbortController(null);
     }
   };
 
@@ -93,6 +115,7 @@ const StoryChat: React.FC<StoryChatProps> = ({ storyId }) => {
             key={index}
             className="question-button"
             onClick={() => handleQuestionClick(question)}
+            disabled={isLoading}
           >
             {question}
           </button>
@@ -128,12 +151,26 @@ const StoryChat: React.FC<StoryChatProps> = ({ storyId }) => {
           }}
           placeholder="اپنا سوال یہاں لکھیں..."
           rows={1}
+          disabled={isLoading}
         />
         <button 
-          onClick={handleSend}
-          disabled={isLoading || !input.trim()}
+          onClick={isLoading ? handleStop : handleSend}
+          className={isLoading ? 'stop-button' : 'send-button'}
+          style={{
+            backgroundColor: isLoading ? '#ff4444' : '#4a90e2',
+            color: 'white',
+            padding: '12px 24px',
+            border: 'none',
+            borderRadius: '20px',
+            cursor: 'pointer',
+            fontSize: '16px',
+            transition: 'all 0.2s ease',
+            minWidth: '100px',
+            opacity: 1,
+            pointerEvents: 'auto'
+          }}
         >
-          بھیجیں
+          {isLoading ? 'روکیں' : 'بھیجیں'}
         </button>
       </div>
     </div>

@@ -2,10 +2,9 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import json
 import os
-import cohere
 from dotenv import load_dotenv
 
-from llm_utils.llm_handler import llm_handler
+from rag.rag_handler import rag_handler
 from story_handler import StoryHandler
 
 app = Flask(__name__)
@@ -15,10 +14,7 @@ CORS(app, resources={r"/api/*": {"origins": "*", "methods": ["GET", "POST", "OPT
 print("Initializing Flask server...")
 story_handler = StoryHandler("data")
 print(f"Story handler: {story_handler}")
-print(f"LLM handler: {llm_handler}")
-
-# Initialize Cohere client
-co = cohere.Client(os.getenv('COHERE_API_KEY'))
+print(f"RAG handler initialized")
 
 def load_json_file(filename):
     """Load data from a JSON file"""
@@ -32,7 +28,7 @@ def load_json_file(filename):
 
 @app.route('/api/ask', methods=['POST'])
 def ask_question():
-    """Handle question asking endpoint"""
+    """Handle question asking endpoint using RAG"""
     data = request.get_json()
     
     if not data or 'question' not in data:
@@ -42,16 +38,9 @@ def ask_question():
     story_id = data.get('story_id')
     
     try:
-        if story_id:
-            # Answer question about specific story
-            result = story_handler.answer_question(story_id, question)
-            return jsonify(result)
-        else:
-            # For general questions, return a message to use story-specific questions
-            return jsonify({
-                'success': False,
-                'error': 'Please ask questions about specific stories'
-            })
+        # Use RAG handler to answer the question
+        result = rag_handler.answer_question(question, story_id)
+        return jsonify(result)
     except Exception as e:
         print(f"Error processing question: {e}")
         return jsonify({
@@ -296,9 +285,8 @@ def ask_story_question(story_id):
         if not question:
             return jsonify({'error': 'Question is required'}), 400
             
-        # Get the answer using the story handler
-        result = story_handler.answer_question(story_id, question)
-        
+        # Use the RAG handler to get answer
+        result = rag_handler.answer_question(question, story_id)
         return jsonify(result)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -316,8 +304,25 @@ def chat_about_story(story_id):
             
         message = data['message']
         
-        # Use the story handler to get answer
-        result = story_handler.answer_question(story_id, message)
+        # Check if this is a sentence completion request
+        # If the message ends with a partial sentence (no period, question mark, etc.)
+        if not any(message.endswith(p) for p in ['.', '?', '!', '۔', '؟', '!']):
+            # Try to find the exact sentence completion
+            result = rag_handler.answer_question(message, story_id)
+            if result['success']:
+                # Limit response to 4 lines
+                response_lines = result['response'].split('\n')
+                if len(response_lines) > 4:
+                    result['response'] = '\n'.join(response_lines[:4])
+                return jsonify(result)
+        
+        # If not a sentence completion or no exact match found, use regular RAG
+        result = rag_handler.answer_question(message, story_id)
+        if result['success']:
+            # Limit response to 4 lines
+            response_lines = result['response'].split('\n')
+            if len(response_lines) > 4:
+                result['response'] = '\n'.join(response_lines[:4])
         return jsonify(result)
         
     except Exception as e:
@@ -340,37 +345,19 @@ def generate_questions():
                 'error': 'Story content is required'
             }), 400
 
-        # Create a prompt for Cohere to generate questions
-        prompt = f"""Given the following Urdu story, generate {num_questions} comprehension questions and their answers in Urdu.
-        Format each question and answer as a numbered list.
-        
-        Story:
-        {story}
-        
-        Generate questions in this format:
-        1. question: [سوال]
-        answer: [جواب]
-        2. question: [سوال]
-        answer: [جواب]
-        """
+        # Just pass the story to the RAG handler
+        result = rag_handler.answer_question(story)
 
-        # Generate questions using Cohere
-        response = co.generate(
-            prompt=prompt,
-            max_tokens=500,
-            temperature=0.7,
-            k=0,
-            stop_sequences=[],
-            return_likelihoods='NONE'
-        )
+        if not result['success']:
+            return jsonify({
+                'success': False,
+                'error': result.get('error', 'Failed to generate questions')
+            }), 500
 
-        # Parse the generated text to extract questions and answers
+        # Parse the response to extract questions and answers
         try:
-            generated_text = response.generations[0].text
-            print("Generated text:", generated_text)  # Debug print
-            
-            # Split the text into lines
-            lines = generated_text.split('\n')
+            # Split the response into lines
+            lines = result['response'].split('\n')
             questions = []
             current_question = None
             current_answer = None
@@ -414,8 +401,8 @@ def generate_questions():
             })
             
         except Exception as e:
-            print(f"Error parsing Cohere response: {e}")
-            print("Full response:", response.generations[0].text)
+            print(f"Error parsing RAG response: {e}")
+            print("Full response:", result['response'])
             return jsonify({
                 'success': False,
                 'error': f'Failed to generate valid questions: {str(e)}'
