@@ -47,10 +47,6 @@ const StoryQuestion: React.FC<StoryQuestionProps> = ({ storyId, storyContent }) 
         const controller = new AbortController();
         setAbortController(controller);
 
-        // Add minimum loading time
-        const startTime = Date.now();
-        const minLoadingTime = 1000; // 1 second minimum loading time
-
         try {
             // Clean up story_id to remove 'root/' prefix if present
             const cleanStoryId = storyId.replace('root/', '');
@@ -73,24 +69,11 @@ const StoryQuestion: React.FC<StoryQuestionProps> = ({ storyId, storyContent }) 
 
             const data = await response.json();
             
-            // Calculate remaining time to ensure minimum loading time
-            const elapsedTime = Date.now() - startTime;
-            const remainingTime = Math.max(0, minLoadingTime - elapsedTime);
-            
-            // Wait for remaining time if needed
-            if (remainingTime > 0) {
-                await new Promise(resolve => setTimeout(resolve, remainingTime));
-            }
-            
             if (!data.success) {
-                if (data.error === 'Could not find the requested information in the story') {
-                    setMessages(prev => [...prev, { 
-                        role: 'assistant', 
-                        content: 'کہانی میں یہ معلومات موجود نہیں ہیں۔' 
-                    }]);
-                } else {
-                    throw new Error(data.error || 'Failed to get response from server');
-                }
+                setMessages(prev => [...prev, { 
+                    role: 'assistant', 
+                    content: data.error || 'معذرت، میں اس وقت سوالات کا جواب نہیں دے سکتا۔ براہ کرم دوبارہ کوشش کریں۔' 
+                }]);
             } else {
                 setMessages(prev => [...prev, { role: 'assistant', content: data.response }]);
             }

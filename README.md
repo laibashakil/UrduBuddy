@@ -1,289 +1,139 @@
 # Urdu Buddy
 
-Urdu Buddy is an interactive application for learning Urdu through stories, poems, and quizzes. It features a sophisticated RAG (Retrieval-Augmented Generation) system for answering questions about stories, specifically designed for the Urdu Tutor Datathon.
+A modern web application for learning Urdu through interactive stories, vocabulary, and language exercises. Built with React, TypeScript, and Python, Urdu Buddy provides an engaging platform for Urdu language learners of all ages.
 
-## System Architecture
+## 🌟 Features
 
-### LLM Configuration
-- Primary Model: TinyLlama 1.1B (Q4_K_M quantized)
-  - Parameters: 1.1B
-  - Quantization: Q4_K_M (4-bit quantization)
-  - Context Length: 512 tokens
-  - Temperature: 0.2
-  - Max New Tokens: 256
-- Embedding Model: Multilingual MiniLM-L12-v2
-  - Supports multiple languages including Urdu
-  - Efficient for semantic search
+- **Interactive Stories**: Access a collection of age-appropriate Urdu stories with chatbox
+- **RAG-Powered Q&A**: Ask questions about stories and get intelligent responses using Retrieval-Augmented Generation
+- **RTL Support**: Full support for Right-to-Left text rendering
+- **Custom Urdu Font**: Uses Noto Nastaliq Urdu for authentic Urdu typography
 
-### Cost-Effective Design
-- Uses quantized models to reduce memory footprint
-- Implements efficient context management
-- Employs multiple validation layers to reduce API calls
-- Caches embeddings and responses for better performance
+## 🤖 RAG-Powered Q&A System
 
-## RAG Workflow
+The Q&A system uses a sophisticated three-tier approach to provide accurate and contextually relevant answers to questions about Urdu stories.
 
-The system implements a sophisticated RAG (Retrieval-Augmented Generation) pipeline optimized for Urdu language processing:
+### How It Works
 
-### 1. Document Processing
-- **Story Loading**
-  - Loads Urdu stories from JSON files
-  - Extracts metadata (title, lesson, characters, etc.)
-  - Preserves story structure and formatting
+1. **Direct Answer from JSON Data**
+   - For common question types, answers are retrieved directly from story metadata
+   - Supported question types:
+     - Title questions (کہانی کا عنوان کیا ہے؟)
+     - Lesson questions (کہانی سے کیا سبق ملتا ہے؟)
+     - Character questions (کہانی کے کردار کون کون ہیں؟)
+     - Moral questions (کہانی کا پیغام کیا ہے؟)
+     - Summary questions (کہانی کا خلاصہ کیا ہے؟)
+     - Difficult words questions (کہانی کے مشکل الفاظ کون سے ہیں؟)
+   - Fastest response time as it bypasses the RAG pipeline
+   - Ensures consistent answers for standard questions
 
-- **Text Chunking**
-  - Splits stories into sentence-level chunks
-  - Preserves sentence boundaries and context
-  - Maintains semantic coherence
-  - Chunk size: 200 tokens with overlap handling
+2. **Sentence Completion**
+   - Detects partial sentences and completes them
+   - Uses exact matching to find the continuation
+   - Preserves context and flow of the story
+   - Ideal for interactive reading and learning
+   - Handles both sentence starts and mid-sentence completions
 
-### 2. Embedding Generation
-- **Multilingual Embeddings**
-  - Uses sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
-  - Generates embeddings for each chunk
-  - Supports both Urdu and Roman Urdu text
-  - Optimized for semantic similarity search
-
-- **Vector Storage**
-  - Stores embeddings in ChromaDB
-  - Implements cosine similarity search
-  - Maintains metadata for each chunk
-  - Enables efficient retrieval
-
-### 3. Query Processing
-- **Question Analysis**
-  - Detects question type (title, lesson, summary, etc.)
-  - Extracts key terms and context
-  - Handles both Urdu and Roman Urdu questions
-  - Supports exact and semantic matching
-
-- **Context Retrieval**
-  - Performs semantic search using question embedding
-  - Retrieves top-k relevant chunks (k=3)
-  - Applies similarity threshold (0.5)
-  - Handles context overlap
-
-### 4. Response Generation
-- **Prompt Construction**
-  - System: "Answer based ONLY on this context. If unsure, say: 'کہانی میں ذکر نہیں۔'"
-  - Context: Retrieved relevant chunks
-  - Question: User's query
-  - Format: Structured for TinyLlama
-
-- **Response Generation**
-  - Uses TinyLlama for text generation
-  - Temperature: 0.2 for focused responses
-  - Max tokens: 256
-  - Enforces Urdu language output
-
-### 5. Response Validation
-- **Quality Checks**
-  - Word overlap validation
-  - Semantic similarity verification
-  - Minimum length requirement (10 tokens)
-  - Context relevance check
-
-- **Hallucination Prevention**
-  - Multiple validation layers
-  - Fallback mechanisms
-  - Clear "not found" responses
-  - Error handling
-
-### 6. Performance Optimization
-- **Caching**
-  - Caches embeddings for stories
-  - Stores frequent responses
-  - Reduces computation overhead
-  - Improves response time
-
-- **Resource Management**
-  - Efficient memory usage
-  - Token limit monitoring
-  - Context window management
-  - Error recovery
-
-### 7. Evaluation Metrics
-- **Response Quality**
-  - Hallucination rate: 91.82%
-  - Accuracy: 17.25%
-  - Response length: 175 characters avg.
-  - Error rate: 0%
-
-- **Performance**
-  - Load time: 7.51 seconds
-  - Response time: 18.63 seconds avg.
-  - Memory usage: 737.25 MB
-  - Context retrieval: < 1 second
-
-## Features
-
-- Interactive Urdu stories and poems
-- AI-powered chat interface for asking questions about stories
-- Story quizzes to test comprehension
-- Vocabulary and alphabet learning tools
-
-## Question Answering Techniques
-
-The system employs three sophisticated techniques to answer questions about stories:
-
-1. **Exact Question Matching**
-   - Handles predefined question patterns about story elements
-   - Supports questions about:
-     - Story title (کہانی کا عنوان کیا ہے؟)
-     - Lesson/moral (کہانی سے کیا سبق ملتا ہے؟)
-     - Characters (کہانی کے کردار کون کون ہیں؟)
-     - Summary (کہانی کا خلاصہ کیا ہے؟)
-     - Difficult words (کہانی کے مشکل الفاظ کون سے ہیں؟)
-   - Provides direct, structured answers from story metadata
-
-2. **RAG-based Dynamic Answering**
-   - Uses Retrieval-Augmented Generation for general questions
+3. **RAG Pipeline**
+   - Used when direct answers and sentence completion aren't applicable
    - Process:
-     1. Converts question to embeddings using multilingual sentence transformer
-     2. Retrieves relevant context from the story using semantic search
-     3. Generates answer using TinyLlama model
-     4. Validates response against context for relevance
-   - Handles questions not covered by exact matching
-   - Supports both Urdu and Roman Urdu questions
+     1. **Text Chunking**: Splits stories into meaningful chunks
+     2. **Embedding Generation**: Creates vector embeddings for questions and chunks
+     3. **Vector Storage**: Uses ChromaDB for efficient storage
+     4. **Context Retrieval**: Finds relevant story chunks
+     5. **Response Generation**: Uses TinyLlama for answer generation
+     6. **Response Validation**: Ensures answer quality and relevance
 
-3. **Sentence Completion**
-   - Helps users recall specific parts of stories
-   - Features:
-     - Completes partial sentences from stories
-     - Matches text fragments to full sentences
-     - Works with both story files and vector database
-     - Preserves sentence context and meaning
-   - Useful for finding specific story segments
+### Key Components
 
-## Hallucination Prevention
+- **RAGHandler**: Main class managing the Q&A pipeline
+- **StoryHandler**: Manages story data and metadata
+- **Embedding Model**: Multilingual sentence transformer
+- **Vector Database**: ChromaDB for efficient storage
+- **Language Model**: TinyLlama for response generation
 
-The system implements multiple layers of hallucination prevention:
+### Performance Optimizations
 
-1. **Response Validation**
-   - Word overlap checking
-   - Semantic similarity validation
-   - Minimum response length requirements
-   - Context relevance verification
+- Caching of embeddings and model instances
+- Efficient chunking strategy
+- Context overlap prevention
+- Token limit management
+- Response validation pipeline
 
-2. **Context Management**
-   - Strict context window limits
-   - Sentence-level chunking
-   - Overlap detection and removal
-   - Token count monitoring
+### Error Handling
 
-3. **Fallback Mechanisms**
-   - Multiple validation layers
-   - Graceful degradation
-   - Clear "not found" responses
-   - Error handling and recovery
+- Graceful fallback between answer methods
+- Context not found handling
+- Invalid response detection
+- Model loading error recovery
 
-## Performance Metrics
+## 🚀 Tech Stack
 
-The system has been tested with the following performance results:
+### Frontend
+- React 18
+- TypeScript
+- React Router
+- Custom CSS with RTL support
+- Noto Nastaliq Urdu font
 
-- **Model Loading**:
-  - Load Time: 7.51 seconds
-  - Memory Usage: 737.25 MB
+### Backend
+- Python Flask
+- ChromaDB for vector storage
+- Sentence Transformers for embeddings
+- TinyLlama for language model
+- NLTK for text processing
 
-- **Response Metrics**:
-  - Average Response Time: 18.63 seconds
-  - Average Response Length: 175 characters
-  - Error Rate: 0%
+## 📋 Prerequisites
 
-- **Quality Metrics**:
-  - Average Hallucination Level: 91.82%
-  - Average Accuracy: 17.25%
-
-- **Model Configuration**:
-  - TinyLlama 1.1B (Q4_K_M quantized)
-  - Context Length: 512 tokens
-  - Max New Tokens: 256
-  - Temperature: 0.2
-
-- **Memory Requirements**:
-  - TinyLlama Model: ~500MB (Q4_K_M quantized)
-  - Embedding Model: ~100MB
-  - Vector Database: ~50MB
-  - Total: < 700MB
-
-- **Context Management**:
-  - Chunk Size: 200 tokens
-  - Overlap Threshold: 0.2
-  - Similarity Threshold: 0.5
-  - Min Response Length: 10 tokens
-
-- **Validation Mechanisms**:
-  - Word overlap checking
-  - Semantic similarity validation
-  - Context relevance verification
-  - Response length validation
-
-Note: These metrics are based on testing with a representative dataset of Urdu stories and questions. The high hallucination rate and low accuracy indicate areas for improvement in the model's performance.
-
-## Prerequisites
-
+- Node.js (v16 or higher)
 - Python 3.8 or higher
-- Node.js 14 or higher
-- npm (Node Package Manager)
-- 4GB RAM minimum
-- 500MB free disk space
+- pip (Python package manager)
 
-## Installation
+## 🛠️ Installation
 
 1. Clone the repository:
-   ```
-   git clone https://github.com/laibashakil/urdubuddy.git
-   cd urdubuddy
-   ```
+```bash
+git clone https://github.com/laibashakil/urdubuddy.git
+cd urdubuddy
+```
 
-2. Install Python dependencies:
-   ```
-   pip install -r requirements.txt
-   ```
+2. Install frontend dependencies:
+```bash
+npm install
+```
 
-3. Install npm dependencies:
-   ```
-   npm install
-   ```
+3. Install Python dependencies:
+```bash
+pip install -r requirements.txt
+```
 
 4. Download required models:
-   ```
-   python scripts/download_models.py
-   ```
+```bash
+# Create models directory
+mkdir models
+# Download TinyLlama model
+wget https://huggingface.co/TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF/resolve/main/tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf -O models/tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf
+```
 
-5. Start the backend server:
-   ```
-   python src/flask_server.py
-   ```
+## 🚀 Running the Application
 
-6. Start the frontend development server:
-   ```
-   npm start
-   ```
+1. Start the development server:
+```bash
+python src/flask_server.py
+```
 
-## Usage
+2. Start the frontend
+```bash
+npm start
+```
 
-- Browse stories and poems in the Stories Library
-- Click on a story to read it
-- Use the chat interface at the bottom of each story to ask questions
-- Questions can be asked in English or Roman Urdu
-- The system will respond in Urdu script
+- Frontend: http://localhost:3000
+- Backend: http://localhost:5000
 
-## Evaluation
 
-The system has been evaluated on:
-- Response accuracy
-- Hallucination rates
-- Response time
-- Memory usage
-- Cost efficiency
+## 🙏 Acknowledgments
 
-## Troubleshooting
-
-- If you encounter a 404 error when accessing stories, make sure both the backend and frontend servers are running
-- If the chat interface doesn't respond, check that the Flask server is running on port 5000
-- For any other issues, check the console logs in your browser's developer tools
-
-## License
-
-[MIT License](LICENSE)
+- [Noto Nastaliq Urdu](https://fonts.google.com/noto/specimen/Noto+Nastaliq+Urdu) for the beautiful Urdu font
+- [TinyLlama](https://github.com/TinyLlama/TinyLlama) for the lightweight language model
+- [ChromaDB](https://www.trychroma.com/) for vector storage
+- [Sentence Transformers](https://www.sbert.net/) for text embeddings
