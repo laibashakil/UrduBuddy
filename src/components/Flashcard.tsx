@@ -4,15 +4,17 @@ import '../styles/Flashcard.css';
 interface FlashcardProps {
   question: string;
   answer: string;
+  color: string;
 }
 
-const Flashcard: React.FC<FlashcardProps> = ({ question, answer }) => {
+const Flashcard: React.FC<FlashcardProps> = ({ question, answer, color }) => {
   const [isFlipped, setIsFlipped] = useState(false);
 
   return (
     <div 
       className={`flashcard ${isFlipped ? 'flipped' : ''}`}
       onClick={() => setIsFlipped(!isFlipped)}
+      style={{ '--card-color': color } as React.CSSProperties}
     >
       <div className="flashcard-inner">
         <div className="flashcard-front">

@@ -17,6 +17,25 @@ const Quiz: React.FC<QuizProps> = ({ storyId }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  // Array of vibrant colors for flashcards
+  const cardColors = [
+    '#FF6B6B', // Coral Red
+    '#4ECDC4', // Turquoise
+    '#45B7D1', // Sky Blue
+    '#96CEB4', // Mint Green
+    '#FFEEAD', // Soft Yellow
+    '#D4A5A5', // Dusty Rose
+    '#9B59B6', // Purple
+    '#E67E22', // Orange
+    '#1ABC9C', // Teal
+    '#F1C40F', // Yellow
+    '#E74C3C', // Red
+    '#3498DB', // Blue
+    '#2ECC71', // Green
+    '#F39C12', // Orange
+    '#8E44AD'  // Purple
+  ];
+
   useEffect(() => {
     console.log('Quiz component mounted with storyId:', storyId);
     fetchStoryAndGenerateQuestions();
@@ -82,6 +101,7 @@ const Quiz: React.FC<QuizProps> = ({ storyId }) => {
             key={index}
             question={card.question}
             answer={card.answer}
+            color={cardColors[index % cardColors.length]}
           />
         ))}
       </div>
