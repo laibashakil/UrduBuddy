@@ -27,42 +27,28 @@ const Quiz: React.FC<QuizProps> = ({ storyId }) => {
       setLoading(true);
       console.log('Fetching story content for:', storyId);
       
-      // First, fetch the story content
-      const storyResponse = await fetch(`http://localhost:5000/api/stories/${storyId}`);
-      console.log('Story response status:', storyResponse.status);
-      const storyData = await storyResponse.json();
-      console.log('Story data:', storyData);
-      
-      if (!storyData.success) {
-        throw new Error('Failed to fetch story');
-      }
-
-      const storyContent = storyData.story.content;
-      console.log('Story content length:', storyContent.length);
-      
-      // Now generate questions using Cohere
-      console.log('Generating questions with Cohere...');
-      const cohereResponse = await fetch('http://localhost:5000/api/generate-questions', {
+      // Generate questions using story data
+      console.log('Generating questions from story data...');
+      const response = await fetch('http://localhost:5000/api/generate-questions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          story: storyContent,
-          numQuestions: 5
+          storyId: storyId
         }),
       });
 
-      console.log('Cohere response status:', cohereResponse.status);
-      const cohereData = await cohereResponse.json();
-      console.log('Cohere data:', cohereData);
+      console.log('Response status:', response.status);
+      const data = await response.json();
+      console.log('Response data:', data);
       
-      if (!cohereData.success) {
+      if (!data.success) {
         throw new Error('Failed to generate questions');
       }
 
-      setFlashcards(cohereData.questions);
-      console.log('Flashcards set:', cohereData.questions);
+      setFlashcards(data.questions);
+      console.log('Flashcards set:', data.questions);
     } catch (err) {
       console.error('Error:', err);
       setError('Failed to load quiz. Please try again later.');

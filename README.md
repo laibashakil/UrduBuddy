@@ -6,6 +6,7 @@ A modern web application for learning Urdu through interactive stories, vocabula
 
 - **Interactive Stories**: Access a collection of age-appropriate Urdu stories with chatbox
 - **RAG-Powered Q&A**: Ask questions about stories and get intelligent responses using Retrieval-Augmented Generation
+- **Interactive Quizzes**: Test your understanding of stories with structured flashcards based on story metadata
 - **RTL Support**: Full support for Right-to-Left text rendering
 - **Custom Urdu Font**: Uses Noto Nastaliq Urdu for authentic Urdu typography
 
@@ -66,6 +67,79 @@ The Q&A system uses a sophisticated three-tier approach to provide accurate and 
 - Context not found handling
 - Invalid response detection
 - Model loading error recovery
+
+## 📚 Interactive Quiz System
+
+The quiz system provides an engaging way to test comprehension of Urdu stories through interactive flashcards generated from story metadata.
+
+### How It Works
+
+1. **Quiz Generation**
+   - Uses predefined story metadata to generate questions
+   - Creates questions and answers in Urdu
+   - Maintains consistent question types across stories
+   - Generates questions based on story elements
+
+2. **Question Types**
+   - Title questions (کہانی کا عنوان کیا ہے؟)
+   - Lesson questions (کہانی سے کیا سبق ملتا ہے؟)
+   - Character questions (کہانی کے کردار کون کون ہیں؟)
+   - Summary questions (کہانی کا خلاصہ کیا ہے؟)
+   - Moral questions (کہانی کا پیغام کیا ہے؟)
+   - Vocabulary questions (مشکل الفاظ کے معنی)
+
+3. **Flashcard Interface**
+   - Interactive cards with questions on front
+   - Answers revealed on click
+   - Smooth flip animation
+   - RTL support for Urdu text
+
+4. **Features**
+   - Consistent question format
+   - Immediate feedback
+   - Easy navigation
+   - Mobile-responsive design
+   - Offline functionality
+
+### Key Components
+
+- **Quiz Component**: Manages the quiz interface and state
+- **Flashcard Component**: Handles individual question display
+- **Story Metadata**: Powers question generation
+- **Error Handling**: Ensures smooth user experience
+
+### Usage
+
+1. Navigate to the Quizzes section
+2. Select a story to quiz on
+3. View and interact with flashcards
+4. Click cards to reveal answers
+5. Test your understanding of the story
+
+### Story JSON Structure
+
+Each story JSON file contains the following fields used for quiz generation:
+```json
+{
+    "title": "Story title in Urdu",
+    "lesson": "Lesson from the story",
+    "characters": [
+        {
+            "name": "Character name",
+            "description": "Character description"
+        }
+    ],
+    "summary": "Story summary",
+    "moral": "Story moral",
+    "difficult_words": [
+        {
+            "word": "Difficult word",
+            "meaning": "Word meaning",
+            "example": "Usage example"
+        }
+    ]
+}
+```
 
 ## 🚀 Tech Stack
 

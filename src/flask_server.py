@@ -332,81 +332,124 @@ def chat_about_story(story_id):
             "error": str(e)
         }), 500
 
+def generate_questions_from_story(story_data: dict) -> dict:
+    """Generate questions from story data"""
+    try:
+        questions = []
+        
+        # Add title question
+        if 'title' in story_data:
+            questions.append({
+                'question': 'کہانی کا عنوان کیا ہے؟',
+                'answer': story_data['title']
+            })
+        
+        # Add lesson question
+        if 'lesson' in story_data:
+            questions.append({
+                'question': 'کہانی سے کیا سبق ملتا ہے؟',
+                'answer': story_data['lesson']
+            })
+        
+        # Add character questions
+        if 'characters' in story_data:
+            for character in story_data['characters']:
+                questions.append({
+                    'question': f'{character["name"]} کون ہے؟',
+                    'answer': character['description']
+                })
+        
+        # Add summary question
+        if 'summary' in story_data:
+            questions.append({
+                'question': 'کہانی کا خلاصہ کیا ہے؟',
+                'answer': story_data['summary']
+            })
+        
+        # Add moral question
+        if 'moral' in story_data:
+            questions.append({
+                'question': 'کہانی کا پیغام کیا ہے؟',
+                'answer': story_data['moral']
+            })
+        
+        # Add difficult words questions
+        if 'difficult_words' in story_data:
+            for word in story_data['difficult_words']:
+                questions.append({
+                    'question': f'{word["word"]} کا مطلب کیا ہے؟',
+                    'answer': f'{word["meaning"]} - مثال: {word["example"]}'
+                })
+        
+        return {
+            'success': True,
+            'questions': questions
+        }
+        
+    except Exception as e:
+        print(f"Error in generate_questions_from_story: {str(e)}")
+        return {
+            'success': False,
+            'error': str(e)
+        }
+
 @app.route('/api/generate-questions', methods=['POST'])
 def generate_questions():
     try:
         data = request.get_json()
-        story = data.get('story')
-        num_questions = data.get('numQuestions', 5)
+        story_id = data.get('storyId')
 
-        if not story:
+        if not story_id:
             return jsonify({
                 'success': False,
-                'error': 'Story content is required'
+                'error': 'Story ID is required'
             }), 400
 
-        # Just pass the story to the RAG handler
-        result = rag_handler.answer_question(story)
+        # Get story data
+        try:
+            # Parse story ID to get file path
+            parts = story_id.split('/')
+            if len(parts) == 2:
+                location, story_name = parts
+            elif len(parts) == 1:
+                story_name = parts[0]
+            else:
+                return jsonify({
+                    'success': False,
+                    'error': 'Invalid story ID format'
+                }), 400
 
+            # Look in the data directory
+            data_dir = 'data'
+            file_path = os.path.join(data_dir, f"{story_name}.json")
+            
+            if not os.path.exists(file_path):
+                return jsonify({
+                    'success': False,
+                    'error': f'Story not found: {story_id}'
+                }), 404
+
+            # Read the story file
+            with open(file_path, 'r', encoding='utf-8') as f:
+                story_data = json.load(f)
+
+        except Exception as e:
+            print(f"Error fetching story data: {str(e)}")
+            return jsonify({
+                'success': False,
+                'error': f'Failed to fetch story data: {str(e)}'
+            }), 500
+
+        # Generate questions from story data
+        result = generate_questions_from_story(story_data)
+        
         if not result['success']:
             return jsonify({
                 'success': False,
                 'error': result.get('error', 'Failed to generate questions')
             }), 500
 
-        # Parse the response to extract questions and answers
-        try:
-            # Split the response into lines
-            lines = result['response'].split('\n')
-            questions = []
-            current_question = None
-            current_answer = None
-            
-            for line in lines:
-                line = line.strip()
-                if not line:
-                    continue
-                    
-                if line.startswith(('1.', '2.', '3.', '4.', '5.')):
-                    # If we have a previous question, add it to the list
-                    if current_question and current_answer:
-                        questions.append({
-                            'question': current_question,
-                            'answer': current_answer
-                        })
-                    
-                    # Start new question
-                    parts = line.split('question:', 1)
-                    if len(parts) > 1:
-                        current_question = parts[1].strip()
-                        current_answer = None
-                elif line.startswith('answer:'):
-                    if current_question:
-                        current_answer = line.split('answer:', 1)[1].strip()
-            
-            # Add the last question if exists
-            if current_question and current_answer:
-                questions.append({
-                    'question': current_question,
-                    'answer': current_answer
-                })
-            
-            # Validate we got the right number of questions
-            if len(questions) != num_questions:
-                raise ValueError(f"Expected {num_questions} questions, got {len(questions)}")
-            
-            return jsonify({
-                'success': True,
-                'questions': questions
-            })
-            
-        except Exception as e:
-            print(f"Error parsing RAG response: {e}")
-            print("Full response:", result['response'])
-            return jsonify({
-                'success': False,
-                'error': f'Failed to generate valid questions: {str(e)}'
-            }), 500
+        return jsonify(result)
 
     except Exception as e:
         print(f"Error in generate_questions: {str(e)}")
