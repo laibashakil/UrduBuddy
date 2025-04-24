@@ -90,7 +90,6 @@ const StoryReader: React.FC<StoryReaderProps> = ({ storyId }) => {
 
   // Determine if this is a poem or a story
   const isPoem = story.type?.toLowerCase() === 'poem';
-  const ageGroup = story.ageGroup || story.age_group || '';
 
   // Format the story content with line breaks
   const formattedContent = story.content.split('\n').map((line, index) => (
@@ -107,16 +106,7 @@ const StoryReader: React.FC<StoryReaderProps> = ({ storyId }) => {
     <div className="story-reader">
       <div className="story-header">
         <h1 className="story-title">{story.title}</h1>
-        {ageGroup && (
-          <div className="story-meta">
-            <span className="age-group">Age group: {ageGroup}</span>
-            <span className={`content-type ${isPoem ? 'poem' : 'story'}`}>
-              {isPoem ? 'Poem' : 'Story'}
-            </span>
-          </div>
-        )}
       </div>
-
       <div className={`story-content ${isPoem ? 'poem-content' : ''}`} dir="rtl">
         {formattedContent}
       </div>
