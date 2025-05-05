@@ -121,8 +121,9 @@ button {
 }
 
 button:disabled {
-  background-color: #ccc;
+  background-color: #cccccc;
   cursor: not-allowed;
+  opacity: 0.7;
 }
 
 button:hover:not(:disabled) {
@@ -171,4 +172,20 @@ textarea, .message {
     font-size: 14px;
     padding: 10px 20px;
   }
+}
+
+.stop-button {
+  background-color: #ff4444 !important;
+  color: white !important;
+  cursor: pointer !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+.send-button {
+  background-color: #4a90e2 !important;
+  color: white !important;
+  cursor: pointer !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
 } 

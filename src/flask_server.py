@@ -2,10 +2,9 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import json
 import os
-import cohere
 from dotenv import load_dotenv
 
-from llm_utils.llm_handler import llm_handler
+from rag.rag_handler import rag_handler
 from story_handler import StoryHandler
 
 app = Flask(__name__)
@@ -15,10 +14,7 @@ CORS(app, resources={r"/api/*": {"origins": "*", "methods": ["GET", "POST", "OPT
 print("Initializing Flask server...")
 story_handler = StoryHandler("data")
 print(f"Story handler: {story_handler}")
-print(f"LLM handler: {llm_handler}")
-
-# Initialize Cohere client
-co = cohere.Client(os.getenv('COHERE_API_KEY'))
+print(f"RAG handler initialized")
 
 def load_json_file(filename):
     """Load data from a JSON file"""
@@ -32,7 +28,7 @@ def load_json_file(filename):
 
 @app.route('/api/ask', methods=['POST'])
 def ask_question():
-    """Handle question asking endpoint"""
+    """Handle question asking endpoint using RAG"""
     data = request.get_json()
     
     if not data or 'question' not in data:
@@ -42,16 +38,9 @@ def ask_question():
     story_id = data.get('story_id')
     
     try:
-        if story_id:
-            # Answer question about specific story
-            result = story_handler.answer_question(story_id, question)
-            return jsonify(result)
-        else:
-            # For general questions, return a message to use story-specific questions
-            return jsonify({
-                'success': False,
-                'error': 'Please ask questions about specific stories'
-            })
+        # Use RAG handler to answer the question
+        result = rag_handler.answer_question(question, story_id)
+        return jsonify(result)
     except Exception as e:
         print(f"Error processing question: {e}")
         return jsonify({
@@ -296,9 +285,8 @@ def ask_story_question(story_id):
         if not question:
             return jsonify({'error': 'Question is required'}), 400
             
-        # Get the answer using the story handler
-        result = story_handler.answer_question(story_id, question)
-        
+        # Use the RAG handler to get answer
+        result = rag_handler.answer_question(question, story_id)
         return jsonify(result)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -316,8 +304,25 @@ def chat_about_story(story_id):
             
         message = data['message']
         
-        # Use the story handler to get answer
-        result = story_handler.answer_question(story_id, message)
+        # Check if this is a sentence completion request
+        # If the message ends with a partial sentence (no period, question mark, etc.)
+        if not any(message.endswith(p) for p in ['.', '?', '!', '۔', '؟', '!']):
+            # Try to find the exact sentence completion
+            result = rag_handler.answer_question(message, story_id)
+            if result['success']:
+                # Limit response to 4 lines
+                response_lines = result['response'].split('\n')
+                if len(response_lines) > 4:
+                    result['response'] = '\n'.join(response_lines[:4])
+                return jsonify(result)
+        
+        # If not a sentence completion or no exact match found, use regular RAG
+        result = rag_handler.answer_question(message, story_id)
+        if result['success']:
+            # Limit response to 4 lines
+            response_lines = result['response'].split('\n')
+            if len(response_lines) > 4:
+                result['response'] = '\n'.join(response_lines[:4])
         return jsonify(result)
         
     except Exception as e:
@@ -327,99 +332,124 @@ def chat_about_story(story_id):
             "error": str(e)
         }), 500
 
+def generate_questions_from_story(story_data: dict) -> dict:
+    """Generate questions from story data"""
+    try:
+        questions = []
+        
+        # Add title question
+        if 'title' in story_data:
+            questions.append({
+                'question': 'کہانی کا عنوان کیا ہے؟',
+                'answer': story_data['title']
+            })
+        
+        # Add lesson question
+        if 'lesson' in story_data:
+            questions.append({
+                'question': 'کہانی سے کیا سبق ملتا ہے؟',
+                'answer': story_data['lesson']
+            })
+        
+        # Add character questions
+        if 'characters' in story_data:
+            for character in story_data['characters']:
+                questions.append({
+                    'question': f'{character["name"]} کون ہے؟',
+                    'answer': character['description']
+                })
+        
+        # Add summary question
+        if 'summary' in story_data:
+            questions.append({
+                'question': 'کہانی کا خلاصہ کیا ہے؟',
+                'answer': story_data['summary']
+            })
+        
+        # Add moral question
+        if 'moral' in story_data:
+            questions.append({
+                'question': 'کہانی کا پیغام کیا ہے؟',
+                'answer': story_data['moral']
+            })
+        
+        # Add difficult words questions
+        if 'difficult_words' in story_data:
+            for word in story_data['difficult_words']:
+                questions.append({
+                    'question': f'{word["word"]} کا مطلب کیا ہے؟',
+                    'answer': f'{word["meaning"]} - مثال: {word["example"]}'
+                })
+        
+        return {
+            'success': True,
+            'questions': questions
+        }
+        
+    except Exception as e:
+        print(f"Error in generate_questions_from_story: {str(e)}")
+        return {
+            'success': False,
+            'error': str(e)
+        }
+
 @app.route('/api/generate-questions', methods=['POST'])
 def generate_questions():
     try:
         data = request.get_json()
-        story = data.get('story')
-        num_questions = data.get('numQuestions', 5)
+        story_id = data.get('storyId')
 
-        if not story:
+        if not story_id:
             return jsonify({
                 'success': False,
-                'error': 'Story content is required'
+                'error': 'Story ID is required'
             }), 400
 
-        # Create a prompt for Cohere to generate questions
-        prompt = f"""Given the following Urdu story, generate {num_questions} comprehension questions and their answers in Urdu.
-        Format each question and answer as a numbered list.
-        
-        Story:
-        {story}
-        
-        Generate questions in this format:
-        1. question: [سوال]
-        answer: [جواب]
-        2. question: [سوال]
-        answer: [جواب]
-        """
-
-        # Generate questions using Cohere
-        response = co.generate(
-            prompt=prompt,
-            max_tokens=500,
-            temperature=0.7,
-            k=0,
-            stop_sequences=[],
-            return_likelihoods='NONE'
-        )
-
-        # Parse the generated text to extract questions and answers
+        # Get story data
         try:
-            generated_text = response.generations[0].text
-            print("Generated text:", generated_text)  # Debug print
+            # Parse story ID to get file path
+            parts = story_id.split('/')
+            if len(parts) == 2:
+                location, story_name = parts
+            elif len(parts) == 1:
+                story_name = parts[0]
+            else:
+                return jsonify({
+                    'success': False,
+                    'error': 'Invalid story ID format'
+                }), 400
+
+            # Look in the data directory
+            data_dir = 'data'
+            file_path = os.path.join(data_dir, f"{story_name}.json")
             
-            # Split the text into lines
-            lines = generated_text.split('\n')
-            questions = []
-            current_question = None
-            current_answer = None
-            
-            for line in lines:
-                line = line.strip()
-                if not line:
-                    continue
-                    
-                if line.startswith(('1.', '2.', '3.', '4.', '5.')):
-                    # If we have a previous question, add it to the list
-                    if current_question and current_answer:
-                        questions.append({
-                            'question': current_question,
-                            'answer': current_answer
-                        })
-                    
-                    # Start new question
-                    parts = line.split('question:', 1)
-                    if len(parts) > 1:
-                        current_question = parts[1].strip()
-                        current_answer = None
-                elif line.startswith('answer:'):
-                    if current_question:
-                        current_answer = line.split('answer:', 1)[1].strip()
-            
-            # Add the last question if exists
-            if current_question and current_answer:
-                questions.append({
-                    'question': current_question,
-                    'answer': current_answer
-                })
-            
-            # Validate we got the right number of questions
-            if len(questions) != num_questions:
-                raise ValueError(f"Expected {num_questions} questions, got {len(questions)}")
-            
-            return jsonify({
-                'success': True,
-                'questions': questions
-            })
-            
+            if not os.path.exists(file_path):
+                return jsonify({
+                    'success': False,
+                    'error': f'Story not found: {story_id}'
+                }), 404
+
+            # Read the story file
+            with open(file_path, 'r', encoding='utf-8') as f:
+                story_data = json.load(f)
+
         except Exception as e:
-            print(f"Error parsing Cohere response: {e}")
-            print("Full response:", response.generations[0].text)
+            print(f"Error fetching story data: {str(e)}")
             return jsonify({
                 'success': False,
-                'error': f'Failed to generate valid questions: {str(e)}'
+                'error': f'Failed to fetch story data: {str(e)}'
             }), 500
+
+        # Generate questions from story data
+        result = generate_questions_from_story(story_data)
+        
+        if not result['success']:
+            return jsonify({
+                'success': False,
+                'error': result.get('error', 'Failed to generate questions')
+            }), 500
+
+        return jsonify(result)
 
     except Exception as e:
         print(f"Error in generate_questions: {str(e)}")

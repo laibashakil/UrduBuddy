@@ -17,6 +17,24 @@ const Quiz: React.FC<QuizProps> = ({ storyId }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  // Array of vibrant colors for flashcards
+  const cardColors = [
+    '#FF6B6B', // Coral Red
+    '#4ECDC4', // Turquoise
+    '#45B7D1', // Sky Blue
+    '#96CEB4', // Mint Green
+    '#D4A5A5', // Dusty Rose
+    '#9B59B6', // Purple
+    '#E67E22', // Orange
+    '#1ABC9C', // Teal
+    '#F1C40F', // Yellow
+    '#E74C3C', // Red
+    '#3498DB', // Blue
+    '#2ECC71', // Green
+    '#F39C12', // Orange
+    '#8E44AD'  // Purple
+  ];
+
   useEffect(() => {
     console.log('Quiz component mounted with storyId:', storyId);
     fetchStoryAndGenerateQuestions();
@@ -27,42 +45,28 @@ const Quiz: React.FC<QuizProps> = ({ storyId }) => {
       setLoading(true);
       console.log('Fetching story content for:', storyId);
       
-      // First, fetch the story content
-      const storyResponse = await fetch(`http://localhost:5000/api/stories/${storyId}`);
-      console.log('Story response status:', storyResponse.status);
-      const storyData = await storyResponse.json();
-      console.log('Story data:', storyData);
-      
-      if (!storyData.success) {
-        throw new Error('Failed to fetch story');
-      }
-
-      const storyContent = storyData.story.content;
-      console.log('Story content length:', storyContent.length);
-      
-      // Now generate questions using Cohere
-      console.log('Generating questions with Cohere...');
-      const cohereResponse = await fetch('http://localhost:5000/api/generate-questions', {
+      // Generate questions using story data
+      console.log('Generating questions from story data...');
+      const response = await fetch('http://localhost:5000/api/generate-questions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          story: storyContent,
-          numQuestions: 5
+          storyId: storyId
         }),
       });
 
-      console.log('Cohere response status:', cohereResponse.status);
-      const cohereData = await cohereResponse.json();
-      console.log('Cohere data:', cohereData);
+      console.log('Response status:', response.status);
+      const data = await response.json();
+      console.log('Response data:', data);
       
-      if (!cohereData.success) {
+      if (!data.success) {
         throw new Error('Failed to generate questions');
       }
 
-      setFlashcards(cohereData.questions);
-      console.log('Flashcards set:', cohereData.questions);
+      setFlashcards(data.questions);
+      console.log('Flashcards set:', data.questions);
     } catch (err) {
       console.error('Error:', err);
       setError('Failed to load quiz. Please try again later.');
@@ -96,6 +100,7 @@ const Quiz: React.FC<QuizProps> = ({ storyId }) => {
             key={index}
             question={card.question}
             answer={card.answer}
+            color={cardColors[index % cardColors.length]}
           />
         ))}
       </div>

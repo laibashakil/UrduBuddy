@@ -57,3 +57,4 @@ build/
 .temp/
 
 models/
+.chroma/

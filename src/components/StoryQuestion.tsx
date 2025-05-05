@@ -13,10 +13,12 @@ interface StoryQuestionProps {
 
 // Common questions in Urdu
 const commonQuestions = [
-    "کہانی کا خلاصہ بتائیں",
-    "کہانی کا سبق کیا ہے؟",
-    "کہانی کے اہم کردار کون ہیں؟",
-    "کہانی کا اختتام کیسے ہوا؟"
+    "کہانی کا عنوان کیا ہے؟",
+    "کہانی سے کیا سبق ملتا ہے؟",
+    "کہانی کے کردار کون کون ہیں؟",
+    "کہانی کا پیغام کیا ہے؟",
+    "کہانی کا خلاصہ کیا ہے؟",
+    "کہانی کے مشکل الفاظ کون سے ہیں؟"
 ];
 
 // Define the API base URL
@@ -26,6 +28,7 @@ const StoryQuestion: React.FC<StoryQuestionProps> = ({ storyId, storyContent }) 
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [abortController, setAbortController] = useState<AbortController | null>(null);
 
     const handleQuestionClick = (question: string) => {
         setInput(question);
@@ -40,16 +43,24 @@ const StoryQuestion: React.FC<StoryQuestionProps> = ({ storyId, storyContent }) 
         setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
         setIsLoading(true);
 
+        // Create new AbortController for this request
+        const controller = new AbortController();
+        setAbortController(controller);
+
         try {
-            const response = await fetch(`${API_BASE_URL}/api/stories/${storyId}/chat`, {
+            // Clean up story_id to remove 'root/' prefix if present
+            const cleanStoryId = storyId.replace('root/', '');
+            
+            const response = await fetch(`${API_BASE_URL}/api/stories/${cleanStoryId}/chat`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({ 
                     message: userMessage,
-                    context: storyContent
+                    story_id: cleanStoryId
                 }),
+                signal: controller.signal
             });
 
             if (!response.ok) {
@@ -59,25 +70,44 @@ const StoryQuestion: React.FC<StoryQuestionProps> = ({ storyId, storyContent }) 
             const data = await response.json();
             
             if (!data.success) {
-                throw new Error(data.error || 'Failed to get response from server');
+                setMessages(prev => [...prev, { 
+                    role: 'assistant', 
+                    content: data.error || 'معذرت، میں اس وقت سوالات کا جواب نہیں دے سکتا۔ براہ کرم دوبارہ کوشش کریں۔' 
+                }]);
+            } else {
+                setMessages(prev => [...prev, { role: 'assistant', content: data.response }]);
             }
-            
-            setMessages(prev => [...prev, { role: 'assistant', content: data.response }]);
-        } catch (error) {
-            console.error('Error sending message:', error);
-            setMessages(prev => [...prev, { 
-                role: 'assistant', 
-                content: 'Sorry, I encountered an error. Please try again.' 
-            }]);
+        } catch (error: any) {
+            if (error.name === 'AbortError') {
+                setMessages(prev => [...prev, { 
+                    role: 'assistant', 
+                    content: 'جواب روک دیا گیا۔' 
+                }]);
+            } else {
+                console.error('Error sending message:', error);
+                setMessages(prev => [...prev, { 
+                    role: 'assistant', 
+                    content: 'معذرت، میں اس وقت سوالات کا جواب نہیں دے سکتا۔ براہ کرم دوبارہ کوشش کریں۔' 
+                }]);
+            }
         } finally {
             setIsLoading(false);
+            setAbortController(null);
+        }
+    };
+
+    const handleStop = () => {
+        if (abortController) {
+            abortController.abort();
+            setIsLoading(false);
+            setAbortController(null);
         }
     };
 
     return (
         <div className="story-chat">
             <div className="chat-header">
-                <h2>کہانی یا نظم سے سوالات پوچھیں</h2>
+                <h2>کہانی سے سوالات پوچھیں</h2>
                 <p className="language-hint">آپ انگریزی یااردو میں سوال پوچھ سکتے ہیں۔</p>
             </div>
             
@@ -87,6 +117,7 @@ const StoryQuestion: React.FC<StoryQuestionProps> = ({ storyId, storyContent }) 
                         key={index}
                         className="question-button"
                         onClick={() => handleQuestionClick(question)}
+                        disabled={isLoading}
                     >
                         {question}
                     </button>
@@ -118,8 +149,25 @@ const StoryQuestion: React.FC<StoryQuestionProps> = ({ storyId, storyContent }) 
                     placeholder="اپنا سوال یہاں ٹائپ کریں"
                     disabled={isLoading}
                 />
-                <button type="submit" disabled={isLoading}>
-                    بھیجیں
+                <button 
+                    type="button"
+                    onClick={isLoading ? handleStop : handleSubmit}
+                    className={isLoading ? 'stop-button' : 'send-button'}
+                    style={{
+                        backgroundColor: isLoading ? '#ff4444' : '#4a90e2',
+                        color: 'white',
+                        padding: '12px 24px',
+                        border: 'none',
+                        borderRadius: '20px',
+                        cursor: 'pointer',
+                        fontSize: '16px',
+                        transition: 'all 0.2s ease',
+                        minWidth: '100px',
+                        opacity: 1,
+                        pointerEvents: 'auto'
+                    }}
+                >
+                    {isLoading ? 'روکیں' : 'بھیجیں'}
                 </button>
             </form>
         </div>
