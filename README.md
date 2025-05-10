@@ -1,4 +1,4 @@
-# Urdu Buddy
+# Urdu Buddy - Interactive Urdu Language Learning Platform for kids
 
 A modern web application for learning Urdu through interactive stories, vocabulary, and language exercises. Built with React, TypeScript, and Python, Urdu Buddy provides an engaging platform for Urdu language learners of all ages.
 
