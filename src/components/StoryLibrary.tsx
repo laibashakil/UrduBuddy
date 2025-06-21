@@ -82,7 +82,7 @@ const ContentLibrary: React.FC = () => {
 
   return (
     <div className="content-library">
-      <div className="library-header">
+      <div className="story-library-header">
         <h1 className="urdu urdu-xlarge">اردو کتب خانہ</h1>
         <p className="subtitle urdu urdu-medium">ہماری کہانیوں کا مجموعہ</p>
       </div>
@@ -94,22 +94,24 @@ const ContentLibrary: React.FC = () => {
           <p>No content available.</p>
         </div>
       ) : (
-        <div className="content-grid">
-          {content.map(item => {
-            return (
-              <Link 
-                to={getContentRoute(item)}
-                key={item.id} 
-                className={`content-item ${item.type.toLowerCase()}`}
-                style={{ backgroundColor: getRandomColor(item.id, item.type) }}
-              >
-                <div className="content-spine"></div>
-                <div className="content-cover">
-                  <h2 className="content-title">{item.title}</h2>
-                </div>
-              </Link>
-            );
-          })}
+        <div className="bookshelf">
+          <div className="content-grid">
+            {content.map(item => {
+              return (
+                <Link 
+                  to={getContentRoute(item)}
+                  key={item.id} 
+                  className={`content-item ${item.type.toLowerCase()}`}
+                  style={{ backgroundColor: getRandomColor(item.id, item.type) }}
+                >
+                  <div className="content-spine"></div>
+                  <div className="content-cover">
+                    <h2 className="content-title">{item.title}</h2>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
         </div>
       )}
     </div>

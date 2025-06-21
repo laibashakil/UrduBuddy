@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './StoryQuestion.css';
+import TypingIndicator from './TypingIndicator';
 
 interface Message {
     role: 'user' | 'assistant';
@@ -29,6 +30,14 @@ const StoryQuestion: React.FC<StoryQuestionProps> = ({ storyId, storyContent }) 
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [abortController, setAbortController] = useState<AbortController | null>(null);
+    const chatMessagesRef = useRef<HTMLDivElement | null>(null);
+
+    // Auto-scroll to the bottom when messages change
+    useEffect(() => {
+        if (chatMessagesRef.current) {
+            chatMessagesRef.current.scrollTop = chatMessagesRef.current.scrollHeight;
+        }
+    }, [messages]);
 
     const handleQuestionClick = (question: string) => {
         setInput(question);
@@ -47,53 +56,70 @@ const StoryQuestion: React.FC<StoryQuestionProps> = ({ storyId, storyContent }) 
         const controller = new AbortController();
         setAbortController(controller);
 
-        try {
-            // Clean up story_id to remove 'root/' prefix if present
-            const cleanStoryId = storyId.replace('root/', '');
-            
-            const response = await fetch(`${API_BASE_URL}/api/stories/${cleanStoryId}/chat`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ 
-                    message: userMessage,
-                    story_id: cleanStoryId
-                }),
-                signal: controller.signal
-            });
+        // Add a temporary "thinking" message
+        const thinkingMessage = { role: 'assistant' as const, content: '...' };
+        setMessages(prev => [...prev, thinkingMessage]);
 
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
+        // Delay for 2 seconds to simulate thinking
+        setTimeout(async () => {
+            try {
+                // Clean up story_id to remove 'root/' prefix if present
+                const cleanStoryId = storyId.replace('root/', '');
+                
+                const response = await fetch(`${API_BASE_URL}/api/stories/${cleanStoryId}/chat`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        message: userMessage,
+                        story_id: cleanStoryId
+                    }),
+                    signal: controller.signal
+                });
 
-            const data = await response.json();
-            
-            if (!data.success) {
-                setMessages(prev => [...prev, { 
-                    role: 'assistant', 
-                    content: data.error || 'معذرت، میں اس وقت سوالات کا جواب نہیں دے سکتا۔ براہ کرم دوبارہ کوشش کریں۔' 
-                }]);
-            } else {
-                setMessages(prev => [...prev, { role: 'assistant', content: data.response }]);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                // Remove "thinking" message and add the real response
+                setMessages(prev => {
+                    const filtered = prev.filter(m => m.content !== '...');
+                    if (!data.success) {
+                        return [...filtered, { 
+                            role: 'assistant', 
+                            content: data.error || 'معذرت، میں اس وقت سوالات کا جواب نہیں دے سکتا۔ براہ کرم دوبارہ کوشش کریں۔' 
+                        }];
+                    } else {
+                        return [...filtered, { role: 'assistant', content: data.response }];
+                    }
+                });
+            } catch (error: any) {
+                if (error.name === 'AbortError') {
+                    setMessages(prev => {
+                        const filtered = prev.filter(m => m.content !== '...');
+                        return [...filtered, { 
+                            role: 'assistant', 
+                            content: 'جواب روک دیا گیا۔' 
+                        }];
+                    });
+                } else {
+                    console.error('Error sending message:', error);
+                    setMessages(prev => {
+                        const filtered = prev.filter(m => m.content !== '...');
+                        return [...filtered, { 
+                            role: 'assistant', 
+                            content: 'معذرت، میں اس وقت سوالات کا جواب نہیں دے سکتا۔ براہ کرم دوبارہ کوشش کریں۔' 
+                        }];
+                    });
+                }
+            } finally {
+                setIsLoading(false);
+                setAbortController(null);
             }
-        } catch (error: any) {
-            if (error.name === 'AbortError') {
-                setMessages(prev => [...prev, { 
-                    role: 'assistant', 
-                    content: 'جواب روک دیا گیا۔' 
-                }]);
-            } else {
-                console.error('Error sending message:', error);
-                setMessages(prev => [...prev, { 
-                    role: 'assistant', 
-                    content: 'معذرت، میں اس وقت سوالات کا جواب نہیں دے سکتا۔ براہ کرم دوبارہ کوشش کریں۔' 
-                }]);
-            }
-        } finally {
-            setIsLoading(false);
-            setAbortController(null);
-        }
+        }, 2000); // 2-second delay
     };
 
     const handleStop = () => {
@@ -124,21 +150,14 @@ const StoryQuestion: React.FC<StoryQuestionProps> = ({ storyId, storyContent }) 
                 ))}
             </div>
 
-            <div className="chat-messages">
+            <div className="chat-messages" ref={chatMessagesRef}>
                 {messages.map((message, index) => (
                     <div key={index} className={`message ${message.role}`}>
-                        <div className="message-content">
-                            {message.content}
+                        <div className={`message-content ${message.role === 'user' ? 'urdu' : ''}`}>
+                            {message.content === '...' ? <TypingIndicator /> : message.content}
                         </div>
                     </div>
                 ))}
-                {isLoading && (
-                    <div className="message assistant">
-                        <div className="message-content">
-                            <span className="typing-indicator">...</span>
-                        </div>
-                    </div>
-                )}
             </div>
 
             <form onSubmit={handleSubmit} className="chat-input">

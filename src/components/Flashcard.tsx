@@ -18,12 +18,12 @@ const Flashcard: React.FC<FlashcardProps> = ({ question, answer, color }) => {
     >
       <div className="flashcard-inner">
         <div className="flashcard-front">
-          <h3>{question}</h3>
+          <h3 className="urdu">{question}</h3>
           <p className="hint">Click to see answer</p>
         </div>
         <div className="flashcard-back">
           <h3>Answer</h3>
-          <p>{answer}</p>
+          <p className="urdu">{answer}</p>
         </div>
       </div>
     </div>

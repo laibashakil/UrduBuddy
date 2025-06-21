@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import '../styles/StoryLibrary.css';
+import '../styles/QuizLibrary.css';
 
 interface Story {
   id: string;
@@ -48,23 +48,11 @@ const QuizLibrary: React.FC = () => {
   };
 
   // Generate a random color for visual variety
-  const getRandomColor = (id: string, type: string) => {
+  const getRandomColor = (id: string) => {
     const kidFriendlyColors = [
-      '#FF6B6B', // Coral Red
-      '#4ECDC4', // Turquoise
-      '#45B7D1', // Sky Blue
-      '#96CEB4', // Mint Green
-      '#FFEEAD', // Soft Yellow
-      '#D4A5A5', // Dusty Rose
-      '#9B59B6', // Purple
-      '#E67E22', // Orange
-      '#1ABC9C', // Teal
-      '#F1C40F', // Yellow
-      '#E74C3C', // Red
-      '#3498DB', // Blue
-      '#2ECC71', // Green
-      '#F39C12', // Orange
-      '#8E44AD'  // Purple
+      '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEEAD',
+      '#D4A5A5', '#9B59B6', '#E67E22', '#1ABC9C', '#F1C40F',
+      '#E74C3C', '#3498DB', '#2ECC71', '#F39C12', '#8E44AD'
     ];
     
     const sum = id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
@@ -81,8 +69,8 @@ const QuizLibrary: React.FC = () => {
   }
 
   return (
-    <div className="content-library">
-      <div className="library-header">
+    <div className="quiz-library">
+      <div className="quiz-library-header">
         <h1 className="urdu urdu-xlarge">اردو کویز</h1>
         <p className="subtitle urdu urdu-medium">ہمارے کہانیوں کے کویز</p>
       </div>
@@ -94,21 +82,18 @@ const QuizLibrary: React.FC = () => {
           <p>No stories available for quizzes.</p>
         </div>
       ) : (
-        <div className="content-grid">
+        <div className="quiz-grid">
           {stories.map(story => {
             return (
-              <Link 
-                to={getQuizRoute(story.id)}
-                key={story.id} 
-                className={`content-item ${story.type.toLowerCase()}`}
-                style={{ backgroundColor: getRandomColor(story.id, story.type) }}
-              >
-                <div className="content-spine"></div>
-                <div className="content-cover">
-                  <h2 className="content-title">{story.title}</h2>
-                  <p className="quiz-label">کویز</p>
+              <div key={story.id} className="quiz-card">
+                <div className="quiz-card-header" style={{ backgroundColor: getRandomColor(story.id) }}></div>
+                <div className="quiz-card-content">
+                  <h2 className="quiz-card-title urdu urdu-medium">{story.title}</h2>
+                  <Link to={getQuizRoute(story.id)} className="quiz-card-button">
+                    Start Quiz
+                  </Link>
                 </div>
-              </Link>
+              </div>
             );
           })}
         </div>

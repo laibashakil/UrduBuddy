@@ -1,14 +1,126 @@
 .content-library {
   padding: 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  position: relative;
-  overflow: hidden;
+  width: 100%;
+}
+
+.story-library-header {
   display: flex;
   flex-direction: column;
   align-items: center;
+  margin-bottom: 2rem;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  color: #333; /* Change text color for white background */
+  text-shadow: none; /* Remove text shadow */
+}
+
+.story-library-header .urdu {
+  text-align: center;
+}
+
+.story-library-header .urdu-xlarge {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.story-library-header .subtitle {
+  font-size: 1rem;
+  opacity: 0.9;
+}
+
+.bookshelf {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2rem;
+  padding: 2rem;
+  background-color: #a0522d; /* Sienna - a wood-like color */
+  border-radius: 12px;
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.5), 0 10px 20px rgba(0,0,0,0.3);
+  position: relative;
+  border: 10px solid #8b4513; /* SaddleBrown - for the frame */
+  border-bottom: none;
+}
+
+.bookshelf::after {
+  content: '';
+  position: absolute;
+  bottom: -20px;
+  left: -10px;
+  right: -10px;
+  height: 20px;
+  background: #8b4513;
+  border-radius: 0 0 10px 10px;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+}
+
+.content-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2rem;
+  width: 100%;
+}
+
+.content-item {
+  position: relative;
+  height: 220px;
+  width: 160px;
+  border-radius: 5px 8px 8px 5px;
+  overflow: hidden;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.3);
+  transform-style: preserve-3d;
+  perspective: 1000px;
+}
+
+.content-item:hover {
+  transform: translateY(-10px) rotateY(5deg) scale(1.05);
+  box-shadow: 10px 15px 30px rgba(0, 0, 0, 0.4);
+}
+
+.content-spine {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 30px;
+  background-color: rgba(0, 0, 0, 0.2);
+  transform: translateZ(-2px);
+  box-shadow: inset 2px 0 5px rgba(0,0,0,0.3);
+}
+
+.content-cover {
+  position: absolute;
+  left: 30px;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  color: white;
+}
+
+.content-title {
+  font-size: 1.2rem;
+  font-family: 'Noto Nastaliq Urdu', serif;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  direction: rtl;
+  font-weight: bold;
+}
+
+.loading, .error, .no-content {
+  text-align: center;
+  font-size: 1.2rem;
+  padding: 4rem;
+  color: white;
 }
 
 .content-library::before {
@@ -70,132 +182,6 @@
   direction: rtl;
 }
 
-.content-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 1.5rem;
-  padding: 1rem;
-  width: 100%;
-  max-width: 1200px;
-}
-
-.content-item {
-  position: relative;
-  height: 220px;
-  border-radius: 15px;
-  overflow: hidden;
-  text-decoration: none;
-  transition: all 0.3s ease;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-  transform-style: preserve-3d;
-  perspective: 1000px;
-}
-
-.content-item:hover {
-  transform: translateY(-10px) rotateX(5deg);
-  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
-}
-
-.content-spine {
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 20px;
-  background: rgba(0, 0, 0, 0.2);
-  transition: all 0.3s ease;
-  transform: translateZ(5px);
-}
-
-.content-item:hover .content-spine {
-  width: 25px;
-  background: rgba(0, 0, 0, 0.3);
-}
-
-.content-cover {
-  position: absolute;
-  left: 20px;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  color: white;
-  background: linear-gradient(
-    135deg,
-    rgba(0, 0, 0, 0.2) 0%,
-    rgba(0, 0, 0, 0.1) 100%
-  );
-  transition: all 0.3s ease;
-}
-
-.content-item:hover .content-cover {
-  transform: translateX(5px) translateZ(10px);
-}
-
-.content-title {
-  font-size: 1.2rem;
-  margin-bottom: 0.8rem;
-  font-family: 'Noto Nastaliq Urdu', serif;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-  direction: rtl;
-  font-weight: bold;
-}
-
-.content-type {
-  font-size: 1rem;
-  margin-bottom: 0.5rem;
-  font-family: 'Noto Nastaliq Urdu', serif;
-  padding: 0.3rem 0.8rem;
-  border-radius: 15px;
-  transition: transform 0.3s ease;
-  direction: rtl;
-}
-
-.content-item:hover .content-type {
-  transform: scale(1.1);
-}
-
-.content-age {
-  font-size: 0.9rem;
-  opacity: 0.9;
-  background-color: rgba(255, 255, 255, 0.2);
-  padding: 0.3rem 0.8rem;
-  border-radius: 15px;
-  margin-top: 0.5rem;
-  backdrop-filter: blur(5px);
-}
-
-.loading {
-  text-align: center;
-  padding: 2rem;
-  font-size: 1.2rem;
-  color: #2C3E50;
-}
-
-.error {
-  text-align: center;
-  padding: 1rem;
-  margin: 1rem 0;
-  background-color: #FFEBEE;
-  color: #C62828;
-  border-radius: 15px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.no-content {
-  text-align: center;
-  padding: 2rem;
-  background-color: rgba(255, 255, 255, 0.9);
-  border-radius: 20px;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-  color: #2C3E50;
-}
-
 @media (max-width: 768px) {
   .content-library {
     padding: 1rem;
@@ -239,31 +225,6 @@
 }
 
 /* Bookshelf Styling */
-.bookshelf {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 2rem;
-  padding: 2rem;
-  background-color: #e0d2bc;
-  border-radius: 8px;
-  box-shadow: 0 8px 16px rgba(0,0,0,0.2);
-  position: relative;
-  border: 15px solid #8b5a2b;
-  border-top: none;
-  min-height: 300px;
-}
-
-.bookshelf::before {
-  content: '';
-  position: absolute;
-  top: -15px;
-  left: 0;
-  right: 0;
-  height: 15px;
-  background-color: #8b5a2b;
-}
-
 .book {
   width: 140px;
   height: 200px;

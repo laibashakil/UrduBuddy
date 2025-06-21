@@ -90,8 +90,8 @@ const Quiz: React.FC<QuizProps> = ({ storyId }) => {
   return (
     <div className="quiz-container">
       <div className="quiz-header">
-        <h2>کہانی کے سوالات</h2>
-        <p>کلپ کارڈز پر کلک کریں جواب دیکھنے کے لیے</p>
+        <h2 className="urdu urdu-large">کہانی کے سوالات</h2>
+        <p className="urdu urdu-medium">کلپ کارڈز پر کلک کریں جواب دیکھنے کے لیے</p>
       </div>
 
       <div className="flashcards-container">
