@@ -1,6 +1,6 @@
 .story-reader {
   max-width: 800px;
-  margin: 0 auto 2rem auto;
+  margin: 2.5rem auto 2rem auto;
   padding: 20px;
   background-color: #fff;
   border-radius: 10px;
@@ -8,6 +8,7 @@
 }
 
 .story-header {
+  margin-top: 2.5rem;
   margin-bottom: 20px;
   text-align: center;
 }
@@ -63,6 +64,8 @@
   overflow-wrap: break-word;
   white-space: pre-line;
   color: #333;
+  max-width: 100%;
+  overflow-x: auto;
 }
 
 /* Special styling for poem content */

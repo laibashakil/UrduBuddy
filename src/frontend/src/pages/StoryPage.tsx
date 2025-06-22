@@ -52,7 +52,7 @@ const StoryPage: React.FC = () => {
   if (!story) return <div>Story not found</div>;
 
   return (
-    <div className="story-page">
+    <div className="story-page main-content-with-navbar-gap">
       <h1>{story.title}</h1>
       <div className="story-content">
         {story.content.split('\n').map((paragraph, index) => (

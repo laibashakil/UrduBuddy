@@ -513,4 +513,9 @@
   .container {
     padding: 0 1rem;
   }
+}
+
+/* Add padding to prevent overlap with sticky navbar */
+.main-content-with-navbar-gap {
+  padding-top: 80px !important;
 } 

@@ -61,7 +61,7 @@ function App() {
             </div>
           </div>
           <div className="footer-bottom">
-            <p>&copy; 2024 Urdu Buddy. Learn Urdu through interactive stories.</p>
+            <p>&copy; 2025 Urdu Buddy. Learn Urdu through interactive stories.</p>
           </div>
         </footer>
       </div>
